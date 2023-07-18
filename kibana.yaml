@@ -1,0 +1,55 @@
+---
+# Source: kibana/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-kibana
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+---
+# Source: kibana/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-kibana
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"
+---
+# Source: kibana/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-kibana
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kibana
+    helm.sh/chart: kibana-10.4.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 5601
+      targetPort: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: kibana
+    app.kubernetes.io/instance: release-name

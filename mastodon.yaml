@@ -1,0 +1,2098 @@
+---
+# Source: mastodon/charts/minio/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+secrets:
+  - name: release-name-minio
+---
+# Source: mastodon/charts/redis/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: true
+metadata:
+  name: release-name-redis
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: mastodon/templates/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-mastodon
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+automountServiceAccountToken: true
+---
+# Source: mastodon/charts/minio/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  root-user: "YWRtaW4="
+  root-password: "VWRlU0xiS0t2Yg=="
+---
+# Source: mastodon/charts/postgresql/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-postgresql
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  postgres-password: "VnNjZ093bWY1NA=="
+  password: "RFA5Njd2MmVlQQ=="
+  # We don't auto-generate LDAP password when it's not provided as we do for other passwords
+---
+# Source: mastodon/charts/redis/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-redis
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  redis-password: "TVV5M1EwNVk1VA=="
+---
+# Source: mastodon/templates/default-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-mastodon-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+data:
+  MASTODON_ADMIN_PASSWORD: "UDRiS2N3cjN0WQ=="
+  SECRET_KEY_BASE: "ZU50SExVRTRKNA=="
+  OTP_SECRET: "S29IMzFzNmpiSw=="
+---
+# Source: mastodon/templates/smtp-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-mastodon-smtp
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+data:
+  login: ""
+  password: ""
+---
+# Source: mastodon/charts/minio/templates/provisioning-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-minio-provisioning
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: minio-provisioning
+data:
+---
+# Source: mastodon/charts/redis/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-redis-configuration
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  redis.conf: |-
+    # User-supplied common configuration:
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+    appendonly yes
+    # Disable RDB persistence, AOF persistence already enabled.
+    save ""
+    # End of common configuration
+  master.conf: |-
+    dir /data
+    # User-supplied master configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of master configuration
+  replica.conf: |-
+    dir /data
+    # User-supplied replica configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of replica configuration
+---
+# Source: mastodon/charts/redis/templates/health-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-redis-health
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  ping_readiness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ] && [ "$responseFirstWord" != "MASTERDOWN" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_readiness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_readiness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+  ping_liveness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_liveness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+---
+# Source: mastodon/charts/redis/templates/scripts-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-redis-scripts
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  start-master.sh: |
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    if [[ -f /opt/bitnami/redis/mounted-etc/master.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/master.conf")
+    exec redis-server "${ARGS[@]}"
+---
+# Source: mastodon/templates/apache-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-apache-mastodon-vhost
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+data:
+  mastodon-vhost.conf: |-
+    <VirtualHost VirtualHost 127.0.0.1:8080 _default_:8080>
+      ServerName 
+      ServerAlias *
+      <Location "/">
+        ProxyPass http://release-name-mastodon-web:80/
+        ProxyPassReverse 
+        Order allow,deny
+        Allow from all
+      </Location>
+      <Location "/api/v1/streaming">
+        # Streaming uses normal API calls and websockets. We used this configuration
+        # based on https://stackoverflow.com/questions/27526281/websockets-and-apache-proxy-how-to-configure-mod-proxy-wstunnel
+        RewriteEngine On
+        RewriteCond %{HTTP:Upgrade} =websocket [NC]
+        RewriteRule /api/(.*)           ws://release-name-mastodon-streaming:80/api/$1 [P,L]
+        RewriteCond %{HTTP:Upgrade} !=websocket [NC]
+        RewriteRule /api/(.*)           http://release-name-mastodon-streaming:80/api/$1 [P,L]
+        ProxyPassReverse 
+        Order allow,deny
+        Allow from all
+      </Location>
+      <Location "/s3storage">
+        ProxyPass http://release-name-minio:80/s3storage/
+        ProxyPassReverse 
+        Order allow,deny
+        Allow from all
+      </Location>
+    </VirtualHost>
+---
+# Source: mastodon/templates/default-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-mastodon-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+data:
+  MASTODON_ADMIN_USERNAME: "user"
+  MASTODON_ADMIN_EMAIL: "user@changeme.com"
+  DB_HOST: "release-name-postgresql"
+  DB_PORT: "5432"
+  DB_NAME: "bitnami_mastodon"
+  DB_USER: "bn_mastodon"
+  ES_ENABLED: "true"
+  ES_HOST: "release-name-elasticsearch"
+  ES_PORT: "9200"
+  WEB_DOMAIN: ""
+  LOCAL_DOMAIN: ""
+  LOCAL_HTTPS: "true"
+  DEFAULT_LOCALE: "en"
+  STREAMING_API_BASE_URL: "ws://"
+  REDIS_HOST: "release-name-redis-master"
+  REDIS_PORT: "6379"
+  SMTP_SERVER: ""
+  SMTP_PORT: "587"
+  SMTP_FROM_ADDRESS: ""
+  SMTP_DOMAIN: ""
+  SMTP_REPLY_TO: ""
+  SMTP_DELIVERY_METHOD: "smtp"
+  SMTP_CA_FILE: "/etc/ssl/certs/ca-certificates.crt"
+  SMTP_OPENSSL_VERIFY_MODE: "none"
+  SMTP_ENABLE_STARTTLS_AUTO: "true"
+  SMTP_TLS: "false"
+  SMTP_AUTH_METHOD: "plain"
+  RAILS_ENV: "production"
+  NODE_ENV: "production"
+  S3_ENABLED: "true"
+  S3_BUCKET: "s3storage"
+  S3_ENDPOINT: "http://release-name-minio"
+  S3_HOSTNAME: "release-name-minio"
+  S3_REGION: "us-east-1"
+  S3_ALIAS_HOST: "/s3storage"
+  S3_PROTOCOL: "http"
+---
+# Source: mastodon/templates/init-job/init-job-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-mastodon-init-scripts
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+data:
+  # All these operations require access to PostgreSQL (including Elasticsearch migration) and Redis. In order to avoid
+  # potential race conditions we include them in the same script.
+  migrate-and-create-admin.sh: |-
+    #!/bin/bash
+
+    set -o errexit
+    set -o nounset
+    set -o pipefail
+
+    # Load libraries
+    . /opt/bitnami/scripts/liblog.sh
+    . /opt/bitnami/scripts/libos.sh
+    . /opt/bitnami/scripts/libvalidations.sh
+    . /opt/bitnami/scripts/libmastodon.sh
+
+    # Load Mastodon environment variables
+    . /opt/bitnami/scripts/mastodon-env.sh
+    info "Migrating database"
+    psql_connection_string="postgresql://${MASTODON_DATABASE_USERNAME}:${MASTODON_DATABASE_PASSWORD}@${MASTODON_DATABASE_HOST}:${MASTODON_DATABASE_PORT_NUMBER}/${MASTODON_DATABASE_NAME}"
+    mastodon_wait_for_postgresql_connection "$psql_connection_string"
+    mastodon_rake_execute db:migrate
+    elasticsearch_connection_string="http://${MASTODON_ELASTICSEARCH_HOST}:${MASTODON_ELASTICSEARCH_PORT_NUMBER}"
+    mastodon_wait_for_elasticsearch_connection "$elasticsearch_connection_string"
+    info "Migrating Elasticsearch"
+    mastodon_rake_execute chewy:upgrade
+    mastodon_ensure_admin_user_exists
+  precompile-assets.sh: |-
+    #!/bin/bash
+
+    set -o errexit
+    set -o nounset
+    set -o pipefail
+
+    # Load libraries
+    . /opt/bitnami/scripts/liblog.sh
+    . /opt/bitnami/scripts/libos.sh
+    . /opt/bitnami/scripts/libvalidations.sh
+    . /opt/bitnami/scripts/libmastodon.sh
+
+    # Load Mastodon environment variables
+    . /opt/bitnami/scripts/mastodon-env.sh
+    mastodon_wait_for_s3_connection "$MASTODON_S3_HOSTNAME" "$MASTODON_S3_PORT_NUMBER"
+    info "Precompiling assets"
+    mastodon_rake_execute assets:precompile
+---
+# Source: mastodon/charts/minio/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"
+---
+# Source: mastodon/charts/apache/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-apache
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apache
+    helm.sh/chart: apache-9.6.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: "Cluster"
+  
+  loadBalancerSourceRanges: []
+  
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+    - name: https
+      port: 443
+      targetPort: https
+  selector:
+    app.kubernetes.io/name: apache
+    app.kubernetes.io/instance: release-name
+---
+# Source: mastodon/charts/elasticsearch/templates/coordinating/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-elasticsearch-coordinating-hl
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: coordinating-only
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: coordinating-only
+---
+# Source: mastodon/charts/elasticsearch/templates/data/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-elasticsearch-data-hl
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: data
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: data
+---
+# Source: mastodon/charts/elasticsearch/templates/ingest/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-elasticsearch-ingest-hl
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: ingest
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: ingest
+---
+# Source: mastodon/charts/elasticsearch/templates/master/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-elasticsearch-master-hl
+  namespace: "harbor"
+  labels: 
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+    - name: tcp-transport
+      port: 9300
+      targetPort: transport
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: master
+---
+# Source: mastodon/charts/elasticsearch/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-elasticsearch
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: coordinating-only
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-rest-api
+      port: 9200
+      targetPort: rest-api
+      nodePort: null
+    - name: tcp-transport
+      port: 9300
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: elasticsearch
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: coordinating-only
+---
+# Source: mastodon/charts/minio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: minio-api
+      port: 80
+      targetPort: minio-api
+      nodePort: null
+    - name: minio-console
+      port: 9001
+      targetPort: minio-console
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: release-name
+---
+# Source: mastodon/charts/postgresql/templates/primary/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql-hl
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+    # Use this annotation in addition to the actual publishNotReadyAddresses
+    # field below because the annotation will stop being respected soon but the
+    # field is broken in some versions of Kubernetes:
+    # https://github.com/kubernetes/kubernetes/issues/58662
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  # We want all pods in the StatefulSet to have their addresses published for
+  # the sake of the other Postgresql pods even before they're ready, since they
+  # have to be able to talk to each other in order to become ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: primary
+---
+# Source: mastodon/charts/postgresql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: primary
+---
+# Source: mastodon/charts/redis/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-redis-headless
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+---
+# Source: mastodon/charts/redis/templates/master/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-redis-master
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: master
+---
+# Source: mastodon/templates/streaming/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-mastodon-streaming
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+    app.kubernetes.io/component: streaming
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: mastodon
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: streaming
+---
+# Source: mastodon/templates/web/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-mastodon-web
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: mastodon
+    helm.sh/chart: mastodon-1.5.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: mastodon
+    app.kubernetes.io/component: web
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: mastodon
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: web
+---
+# Source: mastodon/charts/apache/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-apache
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apache
+    helm.sh/chart: apache-9.6.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: apache
+      app.kubernetes.io/instance: release-name
+  replicas: 1
+  revisionHistoryLimit: 10
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: apache
+        helm.sh/chart: apache-9.6.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      
+      # yamllint disable rule:indentation
+      hostAliases:
+        - hostnames:
+          - status.localhost
+          ip: 127.0.0.1
+      # yamllint enable rule:indentation
+      priorityClassName: ""
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: apache
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: apache
+          image: docker.io/bitnami/apache:2.4.57-debian-11-r34
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: APACHE_HTTP_PORT_NUMBER
+              value: "8080"
+            - name: APACHE_HTTPS_PORT_NUMBER
+              value: "8443"
+          envFrom:
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 8443
+          livenessProbe:
+            httpGet:
+              path: /api/v1/streaming/health
+              port: http
+            initialDelaySeconds: 180
+            periodSeconds: 20
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /api/v1/streaming/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 6
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: vhosts
+              mountPath: /vhosts
+      volumes:
+        - name: vhosts
+          configMap:
+            name: release-name-apache-mastodon-vhost
+---
+# Source: mastodon/charts/minio/templates/standalone/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/instance: release-name
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+        helm.sh/chart: minio-12.6.7
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+      annotations:
+        checksum/credentials-secret: 43c950b41a8785d0928a0064f1ea462eed4ca3037e39c8429d4136996524ba81
+    spec:
+      
+      serviceAccountName: release-name-minio
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: minio
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: minio
+          image: docker.io/bitnami/minio:2023.7.11-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MINIO_SCHEME
+              value: "http"
+            - name: MINIO_FORCE_NEW_KEYS
+              value: "no"
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+            - name: MINIO_DEFAULT_BUCKETS
+              value: s3storage
+            - name: MINIO_BROWSER
+              value: "on"
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"
+            - name: MINIO_CONSOLE_PORT_NUMBER
+              value: "9001"
+          envFrom:
+          ports:
+            - name: minio-api
+              containerPort: 9000
+              protocol: TCP
+            - name: minio-console
+              containerPort: 9001
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: minio-api
+              scheme: "HTTP"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: minio-api
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: release-name-minio
+---
+# Source: mastodon/charts/elasticsearch/templates/coordinating/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-elasticsearch-coordinating
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: coordinating-only
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: coordinating-only
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: coordinating-only
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: release-name-elasticsearch-coordinating-hl
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: coordinating-only
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: coordinating-only
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: docker.io/bitnami/bitnami-shell:11-debian-11-r131
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: docker.io/bitnami/elasticsearch:8.8.2-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: ""
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "release-name-elasticsearch-master-hl.harbor.svc.cluster.local,release-name-elasticsearch-coordinating-hl.harbor.svc.cluster.local,release-name-elasticsearch-data-hl.harbor.svc.cluster.local,release-name-elasticsearch-ingest-hl.harbor.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "2"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: release-name-elasticsearch-master-0 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "1"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).release-name-elasticsearch-coordinating-hl.harbor.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "128m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests:
+              cpu: 25m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+        - name: "data"
+          emptyDir: {}
+---
+# Source: mastodon/charts/elasticsearch/templates/data/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-elasticsearch-data
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: data
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: data
+spec:
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: data
+  serviceName: release-name-elasticsearch-data-hl
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: data
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: data
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: docker.io/bitnami/bitnami-shell:11-debian-11-r131
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: docker.io/bitnami/elasticsearch:8.8.2-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: "data"
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "release-name-elasticsearch-master-hl.harbor.svc.cluster.local,release-name-elasticsearch-coordinating-hl.harbor.svc.cluster.local,release-name-elasticsearch-data-hl.harbor.svc.cluster.local,release-name-elasticsearch-ingest-hl.harbor.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "2"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: release-name-elasticsearch-master-0 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "1"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).release-name-elasticsearch-data-hl.harbor.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "1024m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests:
+              cpu: 25m
+              memory: 2048Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+  volumeClaimTemplates:
+    - metadata:
+        name: "data"
+        annotations:
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: mastodon/charts/elasticsearch/templates/ingest/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-elasticsearch-ingest
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: ingest
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: ingest
+spec:
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: ingest
+  serviceName: release-name-elasticsearch-ingest-hl
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: ingest
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: ingest
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: docker.io/bitnami/bitnami-shell:11-debian-11-r131
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: docker.io/bitnami/elasticsearch:8.8.2-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: "ingest"
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "release-name-elasticsearch-master-hl.harbor.svc.cluster.local,release-name-elasticsearch-coordinating-hl.harbor.svc.cluster.local,release-name-elasticsearch-data-hl.harbor.svc.cluster.local,release-name-elasticsearch-ingest-hl.harbor.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "2"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: release-name-elasticsearch-master-0 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "1"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).release-name-elasticsearch-ingest-hl.harbor.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "128m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests:
+              cpu: 25m
+              memory: 256Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+        - name: "data"
+          emptyDir: {}
+---
+# Source: mastodon/charts/elasticsearch/templates/master/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-elasticsearch-master
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: elasticsearch
+    helm.sh/chart: elasticsearch-19.10.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+    ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+    app: master
+spec:
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: elasticsearch
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: master
+  serviceName: release-name-elasticsearch-master-hl
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: elasticsearch
+        helm.sh/chart: elasticsearch-19.10.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: master
+        ## Istio Labels: https://istio.io/docs/ops/deployment/requirements/
+        app: master
+      annotations:
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+        - name: sysctl
+          image: docker.io/bitnami/bitnami-shell:11-debian-11-r131
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              CURRENT=`sysctl -n vm.max_map_count`;
+              DESIRED="262144";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w vm.max_map_count=262144;
+              fi;
+              CURRENT=`sysctl -n fs.file-max`;
+              DESIRED="65536";
+              if [ "$DESIRED" -gt "$CURRENT" ]; then
+                  sysctl -w fs.file-max=65536;
+              fi;
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: elasticsearch
+          image: docker.io/bitnami/elasticsearch:8.8.2-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ELASTICSEARCH_IS_DEDICATED_NODE
+              value: "yes"
+            - name: ELASTICSEARCH_NODE_ROLES
+              value: "master"
+            - name: ELASTICSEARCH_TRANSPORT_PORT_NUMBER
+              value: "9300"
+            - name: ELASTICSEARCH_HTTP_PORT_NUMBER
+              value: "9200"
+            - name: ELASTICSEARCH_CLUSTER_NAME
+              value: "elastic"
+            - name: ELASTICSEARCH_CLUSTER_HOSTS
+              value: "release-name-elasticsearch-master-hl.harbor.svc.cluster.local,release-name-elasticsearch-coordinating-hl.harbor.svc.cluster.local,release-name-elasticsearch-data-hl.harbor.svc.cluster.local,release-name-elasticsearch-ingest-hl.harbor.svc.cluster.local,"
+            - name: ELASTICSEARCH_TOTAL_NODES
+              value: "2"
+            - name: ELASTICSEARCH_CLUSTER_MASTER_HOSTS
+              value: release-name-elasticsearch-master-0 
+            - name: ELASTICSEARCH_MINIMUM_MASTER_NODES
+              value: "1"
+            - name: ELASTICSEARCH_ADVERTISED_HOSTNAME
+              value: "$(MY_POD_NAME).release-name-elasticsearch-master-hl.harbor.svc.cluster.local"
+            - name: ELASTICSEARCH_HEAP_SIZE
+              value: "128m"
+          ports:
+            - name: rest-api
+              containerPort: 9200
+            - name: transport
+              containerPort: 9300
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /opt/bitnami/scripts/elasticsearch/healthcheck.sh
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/elasticsearch/data
+      volumes:
+  volumeClaimTemplates:
+    - metadata:
+        name: "data"
+        annotations:
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: mastodon/charts/postgresql/templates/primary/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-postgresql
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+spec:
+  replicas: 1
+  serviceName: release-name-postgresql-hl
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: primary
+  template:
+    metadata:
+      name: release-name-postgresql
+      labels:
+        app.kubernetes.io/name: postgresql
+        helm.sh/chart: postgresql-12.6.5
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: primary
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: primary
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      hostNetwork: false
+      hostIPC: false
+      containers:
+        - name: postgresql
+          image: docker.io/bitnami/postgresql:15.3.0-debian-11-r17
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/bitnami/postgresql"
+            - name: PGDATA
+              value: "/bitnami/postgresql/data"
+            # Authentication
+            - name: POSTGRES_USER
+              value: "bn_mastodon"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: password
+            - name: POSTGRES_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            - name: POSTGRES_DATABASE
+              value: "bitnami_mastodon"
+            # Replication
+            # Initdb
+            # Standby
+            # LDAP
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+            # TLS
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            # Audit
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            # Others
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: "error"
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: "pgaudit"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "bn_mastodon" -d "dbname=bitnami_mastodon" -h 127.0.0.1 -p 5432
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - -e
+                - |
+                  exec pg_isready -U "bn_mastodon" -d "dbname=bitnami_mastodon" -h 127.0.0.1 -p 5432
+                  [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+          resources:
+            limits: {}
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /bitnami/postgresql
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: mastodon/charts/redis/templates/master/application.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-redis-master
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: redis
+    helm.sh/chart: redis-17.11.8
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: master
+  serviceName: release-name-redis-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: redis
+        helm.sh/chart: redis-17.11.8
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: master
+      annotations:
+        checksum/configmap: 136e725aecbcffefb4fa0ddac999e70f883a953b470705e5e14dc1de04043484
+        checksum/health: 8caffd2db69ff9f10cfce7854bb316e19cab1f7dce1d29cc2e57be6448c2f986
+        checksum/scripts: de671f4d41ffe1a72b8dd8ee12f22300de2b74d49f269d0c60a852dc28c3dc36
+        checksum/secret: d55568c6d25aa2e9e3b88e42e16dcc648e14f5a695a72ddbff6ffa33c57862b4
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: release-name-redis
+      automountServiceAccountToken: true
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: master
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: docker.io/bitnami/redis:7.0.12-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          command:
+            - /bin/bash
+          args:
+            - -c
+            - /opt/bitnami/scripts/start-scripts/start-master.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: master
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-redis
+                  key: redis-password
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            # One second longer than command timeout should prevent generation of zombie processes.
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_liveness_local.sh 5
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - sh
+                - -c
+                - /health/ping_readiness_local.sh 1
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: redis-tmp-conf
+              mountPath: /opt/bitnami/redis/etc/
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: release-name-redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: release-name-redis-health
+            defaultMode: 0755
+        - name: config
+          configMap:
+            name: release-name-redis-configuration
+        - name: redis-tmp-conf
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/instance: release-name
+          app.kubernetes.io/component: master
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: mastodon/charts/minio/templates/provisioning-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-name-minio-provisioning
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: minio-provisioning
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: Helm
+        helm.sh/chart: minio-12.6.7
+        app.kubernetes.io/component: minio-provisioning
+    spec:
+      
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: release-name-minio
+      initContainers:
+        - name: wait-for-available-minio
+          image: docker.io/bitnami/minio:2023.7.11-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - /bin/bash
+            - -c
+            - |-
+              set -e;
+              echo "Waiting for Minio";
+              wait-for-port \
+                --host=release-name-minio \
+                --state=inuse \
+                --timeout=120 \
+                80;
+              echo "Minio is available";
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: minio
+          image: docker.io/bitnami/minio:2023.7.11-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - /bin/bash
+            - -c
+            - >-
+              set -e;
+              echo "Start Minio provisioning";
+
+              function attachPolicy() {
+                local tmp=$(mc admin $1 info provisioning $2 | sed -n -e 's/^Policy.*: \(.*\)$/\1/p');
+                IFS=',' read -r -a CURRENT_POLICIES <<< "$tmp";
+                if [[ ! "${CURRENT_POLICIES[*]}" =~ "$3" ]]; then
+                  mc admin policy attach provisioning $3 --$1=$2;
+                fi;
+              };
+
+              function detachDanglingPolicies() {
+                local tmp=$(mc admin $1 info provisioning $2 | sed -n -e 's/^Policy.*: \(.*\)$/\1/p');
+                IFS=',' read -r -a CURRENT_POLICIES <<< "$tmp";
+                IFS=',' read -r -a DESIRED_POLICIES <<< "$3";
+                for current in "${CURRENT_POLICIES[@]}"; do
+                  if [[ ! "${DESIRED_POLICIES[*]}" =~ "${current}" ]]; then
+                    mc admin policy detach provisioning $current --$1=$2;
+                  fi;
+                done;
+              }
+
+              function addUsersFromFile() {
+                local username=$(grep -oP '^username=\K.+' $1);
+                local password=$(grep -oP '^password=\K.+' $1);
+                local disabled=$(grep -oP '^disabled=\K.+' $1);
+                local policies_list=$(grep -oP '^policies=\K.+' $1);
+                local set_policies=$(grep -oP '^setPolicies=\K.+' $1);
+
+                mc admin user add provisioning "${username}" "${password}";
+
+                IFS=',' read -r -a POLICIES <<< "${policies_list}";
+                for policy in "${POLICIES[@]}"; do
+                  attachPolicy user "${username}" "${policy}";
+                done;
+                if [ "${set_policies}" == "true" ]; then
+                  detachDanglingPolicies user "${username}" "${policies_list}";
+                fi;
+
+                local user_status="enable";
+                if [[ "${disabled}" != "" && "${disabled,,}" == "true" ]]; then
+                  user_status="disable";
+                fi;
+
+                mc admin user "${user_status}" provisioning "${username}";
+              };
+              mc alias set provisioning $MINIO_SCHEME://release-name-minio:80 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD;
+
+              mc admin service restart provisioning;
+              
+              mc anonymous set download provisioning/s3storage;
+
+              echo "End Minio provisioning";
+          env:
+            - name: MINIO_SCHEME
+              value: "http"
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: minio-provisioning
+              mountPath: /etc/ilm
+      volumes:
+        - name: minio-provisioning
+          configMap:
+            name: release-name-minio-provisioning

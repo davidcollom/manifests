@@ -1,0 +1,2000 @@
+---
+# Source: apisix/charts/etcd/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: release-name-etcd
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  minAvailable: 51%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etcd
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: etcd
+---
+# Source: apisix/templates/control-plane/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-apisix-control-plane
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: apisix/templates/dashboard/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-apisix-dashboard
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: apisix/templates/data-plane/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-apisix-data-plane
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: apisix/templates/ingress-controller/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-apisix-ingress-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: apisix/charts/etcd/templates/token-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-etcd-jwt-token
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  jwt-token.pem: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS1FJQkFBS0NBZ0VBdENLSVJMMjNwaHRsRWE1K0VLbng2dHJOMzNVRU5TZEtMY2w0YlhUR2pvK1lMck5wCm11NHRJcUpoRndnTFlPcEV2bXNyVnN4SUxocVBXbmwrUEx5M0lQbnM3SzlMMTNzcEhvZEUxNndLc0kwczRTRTAKVGJWTllpT0hGWXdwVGRPVnFBUUhGZkVMbkxPRnRaV01vNDZsT3N5c1pJaUFJbGJHZS95Zm1TaElNdVFiRkI5NQpTUi9zLzhiV2hCMXF3UjgzMjlJRFd5NEd5aWtRaGl6TlIrZUJMVWRCM2ttbVdiczBxUGErTTVZMWo5N1JUd3FlClRVRnpiMC9ndHRQb1p3Tk1SV1dmYzJnaFF4K2l2UTA3NklXNW82NG1Kd21sMURYNGtHTEp6Smo4QlkvQkhiVEUKNkN6dm9HNWwrS25uMmMvZmJCMTdrR3FoaXhDVVhGVHVPVWNFVTlkeTJSTUhiYXlLRmQrRW8wVWVVdFpHVUN6SgoyVktMejY4ZXpDUlR5NlpHUDRFZEZaek9DU2YzR1NHVlV6akRYWmdFUDNOS1BZbVN6andqWHZsWTFNUiswQzBvCnh3TU1pMXpsUnhTRTBrUDl6Wm5UYWFpRzkrT0krS2MvRFpiRWNmZjd5WWdIbUw0MDdoQVVtYm5JSmwxTnpNZ0MKS1hGMmNEcWhodDVsckorNU9mNmErMndBVVhXYWVERDhweWl2NVZxS0ZER1E2ZjE5YTBoa2l6KzdoVmlwT3haSQpNeitxZEE2dmxoQ2NGVHVaTjE4aUswWDFYdkFlbENGWXZncjR1b3p6ckVFaU82QWkzbEt3emJnU2V3dVl1UG1VCnRodExuWGVXZkd3OWRTWnpjNWNhWWE1YWdJNHM0Q3d2bHZORlA1bmYvMFhGUFhleEdxZXl3OCtKb1RFQ0F3RUEKQVFLQ0FnRUFudEVYWGF2NjM5dWxWMXFGMFVGVWhpRFZoQjlTVDE3Tm11TFhaNEdla2hCdU56WjlkRmhydU81NwpOV2dsU0JRaitkTFpDaFRmeXE0bUY3bW9IL3F1WnNlVEtQWkFvc0gyZGZFRE5EZDkwVDBYQllKVjcvRmFRWjFiCk94Y3hUMm10dDgyZFJhNFk4OWFmbTRJMzFmZ3RHMU5hNXVRbVBLQlBMUCtFNHU3T0FQaDJHMTdJZXoxSG9oYjQKQ05FNnp2d3NMb1hSNmJFQjBYazFGV2Nvc2kyZENZT2F3bFlpOFZnSlRMTUc3TXFSZk1BUndHTjNRRnZsWDQySQpiUWtXRE1TdW1Uekl3V0pjZVNiS1AyNE1sS3hhQ01MQTVvZ3VDWlJ3Q3pUZUFLSWRDUFkrYUdkNWQ4NHVrejdpCmJzTzJJNmFQc0cycUJLRE92cUltZStWeGgxUmlyZUpBakNidDFURFdCVHhQZW5QamVkMnh4UzF2THhkSzRqN0EKckdHT0t6enJ2a2M2SjRnckhZZTQwTjM4UTZpdUFVUnppRWJCdHBXemV3MUM5Yy9ndU9HKzNrRk5WbWh5ZVJCVgp6WTRiaVZFK3R1WGJaelV6UExHWWZFcWVNVjdIR0JDMDhFSnVuY05vSSswQUtBWUcwTHp5YlhPUG1PRFNGbzdXCnBrc0ZQcUloODZQVTliekhXemR5OWRoV29mKzd2ZDl5SVR3OFgvSVBvendlbVo1TUFIa29OYmdkUXFTKzNUOVMKUWZNU0hpZkJmNG41eExmNUNFV3ZjS3pGNnZaUmxJRzRDY0djWDJQaURIS2V3eXBzL3FJTnRTZ1FzUG5PeVVkMworY003d2lGODRGVWNxZVZBTXlLZzBKWmhnVFJOSzIwRmFnRVEwcDRjT00wb09XTW1kZ1VDZ2dFQkFObjdBSzB6CnhXaWdMOXFIQmtkZTFWZGV1THJJQzY1Z2NreXk1VTBYNVdaRVpCUkpWSG9udWs2RHpvdERYc2cxakpFNTdCeHkKNDY1UWFaNW5WZmpCL2prNW0xTzBWVGZrc3hIajJ1dnJ3K2FQSjhCajVOTzlzcVJoNnR1OXgwRnpPTHNQelREVApUYmh4Y0lWSk14aHhQRThKSlpMc2hVenAxcWdmUkVHZmxwc09tbVA4YXk0OTJnOG5melFDci9JbFRlNyt4aU1WCiswUHFtRzNhbEJ1d3RBWGhtc014eDdaRnBhNFhGTlBNS3lLYWl0T1ludTNoRU1SZWxtWHZxT0s5N0VMekcvY0EKcTdVMWpMSm4xWXozWkM3aE1zZzVJcEhjUXE1eTg4ME5TRHRJZzZMZHRscWlSVGk2RUM1UENFYnFUTGNQV1Q3NwpxT0VxTTBqWFk0RkdjQnNDZ2dFQkFOT05zZUdSSU1ibXI2SWtmeDUybXRNMHNBcnQ2WTl4aXJnYnI4QXBiTkErCk5GTGJveXk3QzArdWhsc1dnTlJ5TGR5V0NJWXViNUswYjQ1bWdnN2ttNnRPL1RGRkJYL1FyVEdYdVZqNFRCTUMKRnk4YmQ1Y1NUYjdEbTF6cXdKSk9TRXhYQzRTWmxsUDNtdXViQXJpZEh4S0oyT2VTaEpkVyt1T1laME5kQzFiSQpuRGhUV2xHS244YkNUd1RNY2V0T3phYzlzbVc4bENuQWM4amJnWUdtNmpNMWxEN2FmVTJWZXR0U3lQR3dISFNjClZsYWF2N1ZQMkpjc2RrYmFwc0dnRWhNaDEvYTBMQzVhYTBNNGtxKzZkWmhyTyszdEJGS0wyZk1NNSs0bnp4d3UKdkMzVVVTOGErMkpuVDFRWEhkblM5YVFVWFZITUE2Rm1jaml1OWxTVXdLTUNnZ0VCQUpmQ0s0OXFXc2JqdDAxQgo4am9nS1JIQjdZU0VuN1ZRaW1NaHJZakYyVDBnNGpoSmNWbjJiTHdiQWVKdERnRC9YeFVBcVlTSTdFREExVGVtCkkvR2pSZFliYUN1WGdqaityVGtJVkxNcG1tTGJTY2FsQlh2eE52MUErcHp2L0ZoeDJvNUppd2F5SmdzQ1YxOUUKUGlHSFBJQ2VFcDIrczNOLzNhV0ExeW1FN1BxWTZSNHhiNEZyS0hTaWYrbjY4UG41eE05ZWF4MmtRU0hnb3l6ZwpIM3REdzZIUWxzbk16NGp6NWt4VTMzZ3hUZHF5azNLTGNDS1hMZkE1Rmlaeit6V1pHbkxtQkpNcjBWL0FuMnJaCjVaQlY4RmEvREhiZmFGVDZieVk2KzhmSHRvRW5sQllBbStOdjFCZVJXcENURDJVbjNDOGFyWHl2QXIxNGZ1bjQKb3RzdTZmOENnZ0VBUk5TbVdwaklqRTZFT0lJZFpnRDY4TnNFcUJtdVUwQ0MvTkh0UmQxMGpQQ2dQNUU4cnhJUQpaUldJbTF4Z0FEOUNFckl5QmM1WCtPaUNIMWZVMnhtZ1dJVnp0Yk1hVGZMTVZ3VmhoY1FMcEdlYXVYWDdYQWpWCmlNckY0dDV5VjJmbStBZWVOTDl2L05QajhPSlhhVStkeTM5VU5rd2luY2JzREY4S3dnMGs0bENWRzNKclFYcVQKNzZ4SzMyblJhdGtSNm1jVmd5cHZIb0tDYVlpWncyQldkT0RxNGVSZXZuNXpJYWIyd0VRbmpmMUx6aE85YWpXWApaK0JNZjFNbXpIclRScXhOUXZSdUo0cTl1WHBQcDZOSUhaWk9RbVJLY3IwVDVaTitacXRISklsRUtya1l6UFcvCmNzM2dMcUR5MG10a0JzV2xjemFvdTd2RVVCTUZESkgxZHdLQ0FRQlBKd1JuVG5LM2tUdVIyVElvQ0cxOVRBdUMKdWhoOHVJZWhTdmpudmhFL21yUXAvZUIyeitvbjd1ZEc1RkpHckNwYTFReE8vMW9aejRLMXJ5YWpRVytyYmhMUgpMbzZDcHZ6M3NEbVVIK2ZwakNzQlA2U3ZpMmdFRHhKcDA5QlYyTkJYNlBjSWJrdG1XZU1pOHJhVExBdUVwZTBYCjgwTHpocDRaaTVXR3VXYlhIbk5JMWczSmJNaUZHLzlnTXpzRWVua2hFSnhUNElsVVUyQ29OY0FYT0pQMmN1TlQKRzhpZDU0U0JhK01pNU13QXpRa0VtVW4vMGRSUklmZ01jbG96QUhHQzYyUDMycjBIeVJ1WVhNZkZTQlBqUGVIOApDZ1drSEN6Z25NSi9RZEM1S1NDUlp3OVYwYTAwZU5mVHVhZTd6TndKSjNTL0lSRkVtQzhoS1ltaE5RSUgKLS0tLS1FTkQgUlNBIFBSSVZBVEUgS0VZLS0tLS0K"
+---
+# Source: apisix/templates/control-plane/api-token-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-apisix-control-plane-api-token
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+type: Opaque
+data:
+  admin-token: "TXoxUGtFeUpKczFMMGRkZVo4T3VYdnpYSTI0aDN2WXI="
+  viewer-token: "WUt3aHMxQXBWOXVXVmZGU2R4RnRldkNKdHdEU1o0Z2c="
+---
+# Source: apisix/templates/dashboard/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-apisix-dashboard
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: dashboard
+type: Opaque
+data:
+  password: "cnB1YzlYMmdwNw=="
+---
+# Source: apisix/templates/tls-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-apisix-control-plane-tls
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ4ekNDQXR1Z0F3SUJBZ0lRU1UwOTRBMWdsbWt6Y1JGSjVDa0p3VEFOQmdrcWhraUc5dzBCQVFzRkFEQVUKTVJJd0VBWURWUVFERXdsaGNHbHphWGd0WTJFd0hoY05Nak13TnpFNE1Ea3pORFF4V2hjTk1qUXdOekUzTURregpORFF4V2pBc01Tb3dLQVlEVlFRREV5RnlaV3hsWVhObExXNWhiV1V0WVhCcGMybDRMV052Ym5SeWIyd3RjR3hoCmJtVXdnZ0VpTUEwR0NTcUdTSWIzRFFFQkFRVUFBNElCRHdBd2dnRUtBb0lCQVFDeUdoNEl1d210TFNycXYxUE8KaVEyZmwwZEFxWnFINEFCemVPT0VLcjM3VVVRQmh4alZNNmFFUUI3UjJLRTArRzlrdFZXQXpYWUJMY0t1bStSVwpkcEhqazhQdlFkYTdpVlZsc1QxM0NsQzF2c2kxb2pVTS9tc25TdlMzTDVvelEzYmNQdW9obCtmZDJLNVo5c0VEClFudWVXOWNsZ1hIMGxYUDVOMkFxZURkQ2psc2tHbTJYcXBMQXBJa1k2WjA4RzIvREVPWnp1VE41Vm1xZ3VLYUoKSEt0Y1ZERlhsSVp4NExYSlNNbEtuVHUyeVBMSGNNcXJ6TTh6R1RxUXVMYXNrWG12U2xQMmpSWU9ESzNwVktEago4cVBwWWg5OC96WlpFVTVoNE1ZNDZEZFpFNjhPSHNhcFN2Sy84M3lrKy95T0xWbnhkaXVpNC8raXlEUUs2YVp1CjYraVBBZ01CQUFHamdnRW5NSUlCSXpBT0JnTlZIUThCQWY4RUJBTUNCYUF3SFFZRFZSMGxCQll3RkFZSUt3WUIKQlFVSEF3RUdDQ3NHQVFVRkJ3TUNNQXdHQTFVZEV3RUIvd1FDTUFBd0h3WURWUjBqQkJnd0ZvQVV5U0NudGFuOAozSHBTd0xhUkZyOUY4RlVvMGEwd2djSUdBMVVkRVFTQnVqQ0J0NEloY21Wc1pXRnpaUzF1WVcxbExXRndhWE5wCmVDMWpiMjUwY205c0xYQnNZVzVsZ2loeVpXeGxZWE5sTFc1aGJXVXRZWEJwYzJsNExXTnZiblJ5YjJ3dGNHeGgKYm1VdWFHRnlZbTl5Z2l4eVpXeGxZWE5sTFc1aGJXVXRZWEJwYzJsNExXTnZiblJ5YjJ3dGNHeGhibVV1YUdGeQpZbTl5TG5OMlk0STZjbVZzWldGelpTMXVZVzFsTFdGd2FYTnBlQzFqYjI1MGNtOXNMWEJzWVc1bExtaGhjbUp2CmNpNXpkbU11WTJ4MWMzUmxjaTVzYjJOaGJEQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFkYnVUS2Q1dldnY3EKaG04am5YLzYwK2tVZ1VhTDRoMzI3VDFhaDBLQjVSbXAwdCtHNXNNSERzbjA2b2FmYWJQZFN5S1E5aVBmNjVuYwpib0k5eEhKZjRrWUNHQVl1anI4b2tLUElZQ3VhNjNDNERpb3FER0tyRGN4L2tRNlgyWkJQWnZ0Y2dUM2h0RWs0CkljSEdFN0RKaWp1bWxvOFdrelRWUUprYnc2WXBPWnpsVERTcXAyQVRXUkx3QWM1L3ptVEJYQ2l5WGdJN2VYV0MKZ1BiRkdaVXl0b2RHdkQycUpsSnp3U1BXaGoya1piVFFNSmZHazFXa3JpNUxmOU41NTFiMDc0ZlY0VHpRdHVnZgpvcWU3UmtVWEF0V2hEbFlrUnRKMCswbG41bERjL0NFdldFdTFIUHB2aStpUHE4bU9XaktSWm4zejNkNGtad2JVCnE4YUI0TUFWRkE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb2dJQkFBS0NBUUVBc2hvZUNMc0pyUzBxNnI5VHpva05uNWRIUUttYWgrQUFjM2pqaENxOSsxRkVBWWNZCjFUT21oRUFlMGRpaE5QaHZaTFZWZ00xMkFTM0NycHZrVm5hUjQ1UEQ3MEhXdTRsVlpiRTlkd3BRdGI3SXRhSTEKRFA1ckowcjB0eSthTTBOMjNEN3FJWmZuM2RpdVdmYkJBMEo3bmx2WEpZRng5SlZ6K1RkZ0tuZzNRbzViSkJwdApsNnFTd0tTSkdPbWRQQnR2d3hEbWM3a3plVlpxb0xpbWlSeXJYRlF4VjVTR2NlQzF5VWpKU3AwN3Rzanl4M0RLCnE4elBNeGs2a0xpMnJKRjVyMHBUOW8wV0RneXQ2VlNnNC9LajZXSWZmUDgyV1JGT1llREdPT2czV1JPdkRoN0cKcVVyeXYvTjhwUHY4amkxWjhYWXJvdVAvb3NnMEN1bW1idXZvandJREFRQUJBb0lCQUhOdDMrZFNxWnZXZVVrNQpoV3lIZ1EvYzhPNGt2aVd2OVRyaHI3dGFKRlU4dnpHcVNGcnRwYzl5NjBhZit5TWtuTFdOblFQa3BjVnZ6Z3h5CnR0T2U5MENpNVVzc3hhbzRBT1B1c21KemlnbXd3ODZNZVl1WlhRTlRYalZYb2IzMXpKUkVKbVJ0V25aNjE4MHcKMHJsMUhqOXRVSXhiVCtydjdnRW9kYWd3ejhmTy9NaUtSWjVvU3lFSy9UVnRPeUR4Q3JVWlV0UUxyK3dOTDMrcgpqaFhDekprU3NtVFBkeXlxa0xJVHJTR21CV1BqRGk4bUFVUDliVGQ1U1lBakxRdTZreHdSaUY0ZGJUQTRLcmxWCjhsbk1rZWJHQmFpQ0N2bnBmTnM4YzVBLzF4NnNyM2prc21EYitBNXJaT2d6b1psYjQ1MTVWS1MrQVZCUjJ2azgKZzhZTXBjRUNnWUVBMllkMjdndDN3aEIwS0ptcFBqakQ4TlJEcG9yT1VTT3I2b3BhVVoxbVBBZFY0VGRYOFpQMgpkMW5IYXIrLzhtd2V6Y3RRdGhjTG9FK3VWTldDRml0NExWSG15bDEvYWZlTWJmUGp1cUQrNzRzYUJKSXd4Z1BKCjZEM0oxRUlHb1U4aWtOYnJQdU9KTDduT3ZTSjc5TE9rSEQ1czhkdkpCczEzRlEzN0NId1YydThDZ1lFQTBabWIKVVl0LytIY0Q4eW5XME0yZGkydUp0R1NUOHlWTjJ0Z01WME5zNCs2OGZRNEJicEJpWVIrZ1ZFSWZha1c1eTk0SAo3dlhKVG5EUTA5S0NqaEZyWHJVVU1jZU1LUjJjWEVibUh6YUFJWlUwOUZ2YnFNYm1CVndncE5tSitXd1U5MWZ5CkE3RWJKTkt3RE1YMU9uVUFSUlljQXVtdzJsdkJlMmFOdTFDclRHRUNnWUFhMGFqSUVJSGpXMFAyL1hyd1FPOW4KY2NRbGRGZWJpVnBZd0ZZQ1dmV1EwUmExZmExS0M0UUhrdm9USHpEN0lubHB4ZmRkZTluakdlL1VaYjUwSFVmagp6b1UxemZFM2oxMnc4TERUQWFac3dpbWpCcU1jeHJyTjkxQTY2eWtHR2t1WXIrYXhDanlQdGNqWGFMai9vbVpKClZTajVhSytRTnlUSFk4SGZlZXozNFFLQmdCU2JJRnpzOVFETldwTU9Xdk1lTTgzZ0hhS2hmTFlieGNLdEdORi8KYkhZZ0kyRzcvY0lMNmRBWWx0K1J2SnJyRGZBUC9RR3VJa05XN2dEVklrYXJTYjMrMldSbmRNMFoveVJIU0JwcgpkajlXOXVUTEh4WkJyNTE1U0RCTXZyYkp2R253dUhkS2N4dTBwdUFxbWdoTU5tR1VZZDZiY09xV3VMZlVCajBUCkdqUWhBb0dBUCttK1RqdjN2L3hkWnMxMzlDK1hrc29JYnlBMVU1NWdYQ1RQQlNLMTRwTVJOV0RzazUxZ3ZoMW8KUHhJVGhHQWhHaGFBendyZ3hCcGlzMmtRY0Ezd2daYTBUamlleVczejFlZW5hT3p2a2EwK1NnWFhjWkVFY1psbgpyZDR4bWtxZlpGUGwvSlE4L3BNOUNpUjZIVjF1enl1OEtSRmlwUEtWRUh4MHp2VDdEUDQ9Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURGRENDQWZ5Z0F3SUJBZ0lSQU94dEovWnBGQ3BLa0pNRWNZZ1hRNjB3RFFZSktvWklodmNOQVFFTEJRQXcKRkRFU01CQUdBMVVFQXhNSllYQnBjMmw0TFdOaE1CNFhEVEl6TURjeE9EQTVNelEwTUZvWERUSTBNRGN4TnpBNQpNelEwTUZvd0ZERVNNQkFHQTFVRUF4TUpZWEJwYzJsNExXTmhNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DCkFROEFNSUlCQ2dLQ0FRRUEzVXA4d1VGMkNLSys1MHVHSTBZTEJ0QWJDYzlVMFlnQ2tmanB6TXFBOHc3RUpOMncKTWpYSnp2dk1POVBnMHpsdWZkVzA3eUNzcmp3UVNaQ253NVpvc1JpSGt0VFFxTnVCRkx3UlNpaVEzOGRDRGY4ZAo3OTJSdmxrNy90bVdVUHNVRG1NSDFzQW92S3lIN0xwL3FMZTNDdy9hU3BHSENzbWVSNE00cXQvS0lheUF5MWhiCnRZMmJHSnp0ZzZYWU80blBMa3F2aENyV0ZLRXpBaW02Ylg2OUF3NDROKzFFRUdIWnR4Q1pTaUNQcHg5WjB4YngKckhNTXY2SmF0d2VXUi9LY2IrbnRtZmlhY2E4bXcweFl5VlptMi9TclprU3hiZytNSHJVWGgyYmNJazZBYnVEeQpZMTBwQUMvYUp6ckZlQ0RuRkIxVTNMTlhrZVRqeCt1NGdmK3haUUlEQVFBQm8yRXdYekFPQmdOVkhROEJBZjhFCkJBTUNBcVF3SFFZRFZSMGxCQll3RkFZSUt3WUJCUVVIQXdFR0NDc0dBUVVGQndNQ01BOEdBMVVkRXdFQi93UUYKTUFNQkFmOHdIUVlEVlIwT0JCWUVGTWtncDdXcC9OeDZVc0Mya1JhL1JmQlZLTkd0TUEwR0NTcUdTSWIzRFFFQgpDd1VBQTRJQkFRQUpBb0JlRlpTTkhPMVpsVlEwa3puTFhwWHpCVm94aDdYdk5LS1BRTFZrZ3RZdHliWnNkZzczCjFvT0c2aVBiRjRFM2R2RTVvTldzT2pKRWNCWFJqUXpIVGRXS1dHYWpVdDl2RTQybk1NOXkvVm9IUUJtNkRhQ1AKMWRDQzIyUVoyTHJnQ04velJyZjlQR3R3VXhmbjJsZzhyS21QZmRHL0RjNGJYOXNyQnN0d1p2eG5MM3dGTitXMQpRejFLM1gwcVNMU3V2VDluVFFEY0lWd3BmTlczWktVeHVVems1TnZNd3dwWXZvVHQ3ODNmalY5ZUpHU3M2UDFxCndXOVc1M29lVjJsanc3RVhwKzVOOEdhc0xaMWRER3lOWkphMm10UTBmUG9ZaDNHeHN5QWhyWU01OVhEM1V2RVYKcS9oT3ZMME9SSmtpWERuaXBpbk1lemhYakdnaG5XK2wKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+---
+# Source: apisix/templates/tls-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-apisix-data-plane-tls
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: data-plane
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ1VENDQXMyZ0F3SUJBZ0lSQUtmQTJLMkZSeUJ6bEp4RDhTbVhta1l3RFFZSktvWklodmNOQVFFTEJRQXcKRkRFU01CQUdBMVVFQXhNSllYQnBjMmw0TFdOaE1CNFhEVEl6TURjeE9EQTVNelEwTVZvWERUSTBNRGN4TnpBNQpNelEwTVZvd0tURW5NQ1VHQTFVRUF4TWVjbVZzWldGelpTMXVZVzFsTFdGd2FYTnBlQzFrWVhSaExYQnNZVzVsCk1JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBM2MweEVBcFMzRnFMaGYxOVZBdXUKS0N1aHlRb0NLTVVyNXgwTjFTNEs5REl2a3RNWm1DdVc4bDgyWG9EU2dncjB1TEpLMnoybkFodHpPb2l4U05PNAoyeFM0WFBJZ05EZktQSEJMRDgySlZWQVJBMFhKZURqREN4aThPMy9Hd3FHRm9sT2JUeGxnTjgrRVdvY3pKNDlLCkVUSTBsU0NBOGFtYkdGRUxTYXF4bGkydkhwZldnZzRWQ2Z6ejVSc3NqdjY4NVpLRHAyUWNXWUNGaTJCN0IyOVYKV2lJb2JXSTloRXQ1cXVxeCtReXVreURmVGZZQVA0TUJ6cTZ4OHZqdE0xRm5pMVEwQWlrSDlPR2NqUDVadjNXbQp2SmJqTmZmc280c0hJV2ZoWEhmTXVtRWRybVBvam1DOFpQdndackFXeEo5QkF3YjZXek5HeUVnZmhTWGVJUVI4CnZRSURBUUFCbzRJQkd6Q0NBUmN3RGdZRFZSMFBBUUgvQkFRREFnV2dNQjBHQTFVZEpRUVdNQlFHQ0NzR0FRVUYKQndNQkJnZ3JCZ0VGQlFjREFqQU1CZ05WSFJNQkFmOEVBakFBTUI4R0ExVWRJd1FZTUJhQUZNa2dwN1dwL054NgpVc0Mya1JhL1JmQlZLTkd0TUlHMkJnTlZIUkVFZ2E0d2dhdUNIbkpsYkdWaGMyVXRibUZ0WlMxaGNHbHphWGd0ClpHRjBZUzF3YkdGdVpZSWxjbVZzWldGelpTMXVZVzFsTFdGd2FYTnBlQzFrWVhSaExYQnNZVzVsTG1oaGNtSnYKY29JcGNtVnNaV0Z6WlMxdVlXMWxMV0Z3YVhOcGVDMWtZWFJoTFhCc1lXNWxMbWhoY21KdmNpNXpkbU9DTjNKbApiR1ZoYzJVdGJtRnRaUzFoY0dsemFYZ3RaR0YwWVMxd2JHRnVaUzVvWVhKaWIzSXVjM1pqTG1Oc2RYTjBaWEl1CmJHOWpZV3d3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUl4djZFR1phRzg2MXlFNmhNWE9odEx3T21aaHdHMGoKTFdzNVhHSVBvQ2dmTy8xTnhWdVR4YWlKcW80MWFwTnVEUmRPT3V4dGZMakNTV3dENVd2eEU2UlJic3gwMU8vbApCQkF5MTJBZDB3a2hvT2JuYUVwNFBjbW5Id0RIWEZvVi9lbDJqT0FkQmpRRWl1a2plTjB1b0c0elRDWEc1VWwrCnJVR2JVaThUWVBrbGFvOWMxZ0FETUpqSFVyYkhxY2p4NE5kRDVYd2pGZWV2S2hDSkp0NGgxRHVBWUdTa09aUGIKVUdvVkxOMFA0ZTI1MHRmZ0JSNU5GZ1pad2NreXVyaEhhaTNJMThFQnBTWDZBc1JoZjRvNFdnTE5JUVJZMXJMZwpKMm52YlQ1Z0lrdXB5U2hsN2R5Mm9VWGxBMDlBdmlhRlVpaDVuRk1kaTlzRkxxb1d4RjQxRDdZPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFcEFJQkFBS0NBUUVBM2MweEVBcFMzRnFMaGYxOVZBdXVLQ3VoeVFvQ0tNVXI1eDBOMVM0SzlESXZrdE1aCm1DdVc4bDgyWG9EU2dncjB1TEpLMnoybkFodHpPb2l4U05PNDJ4UzRYUElnTkRmS1BIQkxEODJKVlZBUkEwWEoKZURqREN4aThPMy9Hd3FHRm9sT2JUeGxnTjgrRVdvY3pKNDlLRVRJMGxTQ0E4YW1iR0ZFTFNhcXhsaTJ2SHBmVwpnZzRWQ2Z6ejVSc3NqdjY4NVpLRHAyUWNXWUNGaTJCN0IyOVZXaUlvYldJOWhFdDVxdXF4K1F5dWt5RGZUZllBClA0TUJ6cTZ4OHZqdE0xRm5pMVEwQWlrSDlPR2NqUDVadjNXbXZKYmpOZmZzbzRzSElXZmhYSGZNdW1FZHJtUG8Kam1DOFpQdndackFXeEo5QkF3YjZXek5HeUVnZmhTWGVJUVI4dlFJREFRQUJBb0lCQUQrUXRNVGlFSWt5TWRZKwpwWkpXbnB6SWxGOG5UU01lRHN6M1dLV0Z3b0hsZUJqZUF2SEhYRVV0NEVrSkprczZsSlB5Rk4zc04xYTFRenE5ClBnR2ZHOVU5aFBDdU8yaDdyS3ZSaXRHR21Cc3BEUmNoQXZJL1lqWmw2bHdxN0cyUEdOdENscm4ramNLdzZEK0IKaTdtRXFUZHdhZjFyQ1VrNDBFZ1J3ZWhrME93MnRwUkM3SExLeE1WUjN6Vlhyb0l1aDVscE1JT0ZybytjV1dNbgpSUmE5YlFuLzRvZWR5TU10ZzVOMFptdDB1eTNzOXZBc1U1Z2FtVmZMa2k4Rm5vQmdsMUVWb3kvNlJuaGZQZEZpCmFDZmc0VW04Z0dvSlRYMk96bnlpUkZnVldIZ1V0RUcwdDV0YTVzNzFnZTBwdDJFaFZRMmZqWkFDN1JIRDllVWsKUFlKaWlva0NnWUVBLzVqODkrMitjYmxmclArV0hTR1NFWWRYZnJidkFMTVQyLzVkamMwamt3NWR3Sy9QeDRmVwo5c0dHODArVWpZaFZaS3RIdm5ZNGxkM1hQTW5tdG5sQ0d5cXNvaG9UbVZqenNHZEJuazRCSjc2MTN2M0NIV05WCjRTVk84ZHlpb3NjalhEOGVrbEg2eTZhTndBOWF5TDQ3WVBPWUNxVjF3dnR1ZDErM2ttd1RDV01DZ1lFQTNpYVYKTjRoMnJqREVDSjRxOTYrTEh6bDVIbkh3d2tZVElGdDRoZ3hHRjRUZFYwODRBYTVuMHp2dkJML3hkSTdzTytUMQp5bTkrUUM3Um1OWDhJN245aDJaeXJucis5cTdUR0l1djVpRHhGaFlXdm9JUDBMMEhHdnF5WlpYajdtdjgyRGZ5ClhjazNtSThvTXpHL0VSWkY2ZkZVYzFybklGaUVaRWZieW5VOFMxOENnWUVBMERoRWxJRWtMU2NUcnk1RGp4WEQKRmU2SXM1eTVWWHVOU1NHTit5L0x0RWYyempzcmJHUFlGZ3NRTWZSNWsxY21JYTE2ODhrQlRlMThJM1JqTS9IUwpqYWtWRzdWY2xBY245bVFYeTZ2R095ZWNwNzFYdm5NbkNoUkhuTGJkOHZlQmNldWxyeE9EMlJXazBucHZ2YXRqCldoYjNuR3l3WTVoS3BJcmdWRE1neXZzQ2dZQVJxNllBNWRUeTVDUWp2MWtSbktBSFdzMzhrdm1ncW14SkRaMlgKcEJCTFBLRlNtWldONUs2VGlkZm9XOUE4QWtaZU9VY24xQmlKeUcrWnBhUEp2N2lmOVpFM3VjYmdIbVhpTlBKSAo3dVRlYWVGalEvczRFbUVuVHp1emd1bS9oRTEzY1hQUTYvbUZKQllCaEhwN1JIZEpOWTRQSXZMeGlyajFOUllSCms2TzVKd0tCZ1FDZzNtRW94NFAwZURrQ2phUUhrRkxEWG1SZGRBZjdzYjd1d2VNMENRWkRUS2hDdXROL1hpZ2kKTWhVcEFYSmRtZ0YrSnJzaTRYNVNpaFF6TXpJMXpuMFl0ZEQycm9hNG4zd3c5S3BtaC92bnpJUmw2djVubVVaQwpPaTVTeit2TFV2bVUwVHVmRnZuS1pSMlZqQ3pLMU84Z08reUlGVHB6ZnBvT1llRmRIU2YyTVE9PQotLS0tLUVORCBSU0EgUFJJVkFURSBLRVktLS0tLQo=
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURGRENDQWZ5Z0F3SUJBZ0lSQU94dEovWnBGQ3BLa0pNRWNZZ1hRNjB3RFFZSktvWklodmNOQVFFTEJRQXcKRkRFU01CQUdBMVVFQXhNSllYQnBjMmw0TFdOaE1CNFhEVEl6TURjeE9EQTVNelEwTUZvWERUSTBNRGN4TnpBNQpNelEwTUZvd0ZERVNNQkFHQTFVRUF4TUpZWEJwYzJsNExXTmhNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DCkFROEFNSUlCQ2dLQ0FRRUEzVXA4d1VGMkNLSys1MHVHSTBZTEJ0QWJDYzlVMFlnQ2tmanB6TXFBOHc3RUpOMncKTWpYSnp2dk1POVBnMHpsdWZkVzA3eUNzcmp3UVNaQ253NVpvc1JpSGt0VFFxTnVCRkx3UlNpaVEzOGRDRGY4ZAo3OTJSdmxrNy90bVdVUHNVRG1NSDFzQW92S3lIN0xwL3FMZTNDdy9hU3BHSENzbWVSNE00cXQvS0lheUF5MWhiCnRZMmJHSnp0ZzZYWU80blBMa3F2aENyV0ZLRXpBaW02Ylg2OUF3NDROKzFFRUdIWnR4Q1pTaUNQcHg5WjB4YngKckhNTXY2SmF0d2VXUi9LY2IrbnRtZmlhY2E4bXcweFl5VlptMi9TclprU3hiZytNSHJVWGgyYmNJazZBYnVEeQpZMTBwQUMvYUp6ckZlQ0RuRkIxVTNMTlhrZVRqeCt1NGdmK3haUUlEQVFBQm8yRXdYekFPQmdOVkhROEJBZjhFCkJBTUNBcVF3SFFZRFZSMGxCQll3RkFZSUt3WUJCUVVIQXdFR0NDc0dBUVVGQndNQ01BOEdBMVVkRXdFQi93UUYKTUFNQkFmOHdIUVlEVlIwT0JCWUVGTWtncDdXcC9OeDZVc0Mya1JhL1JmQlZLTkd0TUEwR0NTcUdTSWIzRFFFQgpDd1VBQTRJQkFRQUpBb0JlRlpTTkhPMVpsVlEwa3puTFhwWHpCVm94aDdYdk5LS1BRTFZrZ3RZdHliWnNkZzczCjFvT0c2aVBiRjRFM2R2RTVvTldzT2pKRWNCWFJqUXpIVGRXS1dHYWpVdDl2RTQybk1NOXkvVm9IUUJtNkRhQ1AKMWRDQzIyUVoyTHJnQ04velJyZjlQR3R3VXhmbjJsZzhyS21QZmRHL0RjNGJYOXNyQnN0d1p2eG5MM3dGTitXMQpRejFLM1gwcVNMU3V2VDluVFFEY0lWd3BmTlczWktVeHVVems1TnZNd3dwWXZvVHQ3ODNmalY5ZUpHU3M2UDFxCndXOVc1M29lVjJsanc3RVhwKzVOOEdhc0xaMWRER3lOWkphMm10UTBmUG9ZaDNHeHN5QWhyWU01OVhEM1V2RVYKcS9oT3ZMME9SSmtpWERuaXBpbk1lemhYakdnaG5XK2wKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+---
+# Source: apisix/templates/tls-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-apisix-ingress-controller-tls
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: ingress-controller
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUVERENDQXZTZ0F3SUJBZ0lRZEtUYmV2bTJJbTJoaVl1SlpVcDlUekFOQmdrcWhraUc5dzBCQVFzRkFEQVUKTVJJd0VBWURWUVFERXdsaGNHbHphWGd0WTJFd0hoY05Nak13TnpFNE1Ea3pORFF4V2hjTk1qUXdOekUzTURregpORFF4V2pBeE1TOHdMUVlEVlFRREV5WnlaV3hsWVhObExXNWhiV1V0WVhCcGMybDRMV2x1WjNKbGMzTXRZMjl1CmRISnZiR3hsY2pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBS0xmQllXNXhnMzMKWmJTS0pGbzNjdkJXRTUxN0pkQVRGODZyZ0Jlem5pRTdqUUZCU2o0Y0kxQmRsQzJSMzZLYnhsWVk3dHVUQlJjOQpSTlB1b09rOUFZUXFuVzBPNGFHNEg3aGhyMFJWdWRwaE9DZ3RJZHR2N1ZhcXppSUtYb284cldVd3hEZFdCTTVICkwwakdCaHpmc2lnZ3MyOHBMUkIyVHBPeFhYdkRsc3dMc1ZTczhiT1FZWjE1d3V6aTdiN29Pdk9DWXBoMUZOYVAKSlNPMUE5T1dzcnJzbVMwZVN6RkR6blh5dW1yK2F1VjBsZkc2T1Ava2o5Y25yYUp2V295anF3VHF5SU10ZnpGKwo5WHlZVnVHdDZ2bUY0VnV3UW1nOEd0TmdHQ3E2S1pwc1kwUDRuWHhMSHp5YmlCbURPR3M0c21TRUcrbHNYSktiCnlKM0hjK0JIak04Q0F3RUFBYU9DQVRzd2dnRTNNQTRHQTFVZER3RUIvd1FFQXdJRm9EQWRCZ05WSFNVRUZqQVUKQmdnckJnRUZCUWNEQVFZSUt3WUJCUVVIQXdJd0RBWURWUjBUQVFIL0JBSXdBREFmQmdOVkhTTUVHREFXZ0JUSgpJS2UxcWZ6Y2VsTEF0cEVXdjBYd1ZTalJyVENCMWdZRFZSMFJCSUhPTUlITGdpWnlaV3hsWVhObExXNWhiV1V0CllYQnBjMmw0TFdsdVozSmxjM010WTI5dWRISnZiR3hsY29JdGNtVnNaV0Z6WlMxdVlXMWxMV0Z3YVhOcGVDMXAKYm1keVpYTnpMV052Ym5SeWIyeHNaWEl1YUdGeVltOXlnakZ5Wld4bFlYTmxMVzVoYldVdFlYQnBjMmw0TFdsdQpaM0psYzNNdFkyOXVkSEp2Ykd4bGNpNW9ZWEppYjNJdWMzWmpnajl5Wld4bFlYTmxMVzVoYldVdFlYQnBjMmw0CkxXbHVaM0psYzNNdFkyOXVkSEp2Ykd4bGNpNW9ZWEppYjNJdWMzWmpMbU5zZFhOMFpYSXViRzlqWVd3d0RRWUoKS29aSWh2Y05BUUVMQlFBRGdnRUJBQXI1MGFxWXN3Q3VaSFFleXRsZVNleXRVZFZRMnVKTWhhMlJFKyswQ2g3YQoramVMVTdyVHJEOFYxcW9MYUk2b2Q4VEwwT0VtQVZMN0dVSHdURGM5dENXRXRONjZnTjdib3Z3TGdlTVJlOTUwCjRCSDVnc3pUeDZVTDRJZXRDZW1aRkVWazNSTWRiQnprcFA4clEyMUFKOWhvMlVnVWxweDJjdE1XZldQUE1CWkkKcVpwR3FzSmQyWUhKVzA2dnBFaVM4c3RWZElqclhrUjErT3VzNXcxankvMVhFQis1UTlVL3ZFTzMxZWt3NlE2TAo5WEhkT0hIV3paUWR3L2ZrOUxIaGlyZzlQRldZQk1ienNyMzdydUJIUnl6WEVJTDRSN1h6OUxPY1dMZ2RKYlR0CktQQ0w5bEdtNVBXWDJZOGJpQndjNEJqOVkwTkh6cVJXRmVUS0NzeHEyb3M9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBb3Q4RmhibkdEZmRsdElva1dqZHk4RllUblhzbDBCTVh6cXVBRjdPZUlUdU5BVUZLClBod2pVRjJVTFpIZm9wdkdWaGp1MjVNRkZ6MUUwKzZnNlQwQmhDcWRiUTdob2JnZnVHR3ZSRlc1Mm1FNEtDMGgKMjIvdFZxck9JZ3BlaWp5dFpUREVOMVlFemtjdlNNWUdITit5S0NDemJ5a3RFSFpPazdGZGU4T1d6QXV4Vkt6eApzNUJoblhuQzdPTHR2dWc2ODRKaW1IVVUxbzhsSTdVRDA1YXl1dXlaTFI1TE1VUE9kZks2YXY1cTVYU1Y4Ym80Ci8rU1AxeWV0b205YWpLT3JCT3JJZ3kxL01YNzFmSmhXNGEzcStZWGhXN0JDYUR3YTAyQVlLcm9wbW14alEvaWQKZkVzZlBKdUlHWU00YXppeVpJUWI2V3hja3B2SW5jZHo0RWVNendJREFRQUJBb0lCQVFDY0RvdVJEV2JxL1BEVApvMFdmdDkrR3owTXVNdEFSWmluNm1iTTdncHh5aFVmZk92cnpOaXpVRlVZa3Y5QURVN1VmeS9ZYUorM0p6YWdFClZYS1M2U1JweWhkYlp0WGxDYkpERGo1TWdNTjZyb3FMWEd0RGdpUnNWVzc3aU9uN0ZKYWtEYTBFeElRSVRvYk0KK1Fqa1k2YWw4bWRiakoya1YyZUU5bjUzVnZwSGVTais3enJrMGdEVms1Y0RVbk5ieitGU2tVTU02MWJWTVFiNwovN2gwTnd3M0J0UkZEdFRSWU4zNVY0bEdnS2ExNXBLVVJibEpQazc5cldGWHBjZmFxUUlXU2lqaVlUenlrNFdlCjNxYWQvUFkwRGRQa2trRGYycVZCUThtdTROMHZORWZYZ2xFYk5GQ1AvaHdIQWYvT2J2UHVUai9XVDlYaGVvT0UKMllZWmxxZlJBb0dCQU5Vbll3akMzQmNCaTlzandtcnk3d1A4a0hTeDUyd1pUQWFHMm9oYkhtK0crc0JsVmxsbgpOSURHVEM1dHU1ZHpWZEwrRmxiY24rRHRwank2UTJCclBCdy9YY0toK0dCdm9RU1hTMkg4TllxZEVxU3ZrVEF4CnhCdGppcmxMQkF0Szg3QUlnQkhmdzIxOWVKalNXTlIvajBrUkhGeXo2czVNZzNpaGxyWXNJcW1wQW9HQkFNT2MKSjd3em93dEpXbFVnOUd3T09FY0xyVksyeU01RmwvYmZVNERLZ0JCTTJvQ0lBZ1hCbzNPTzhNK0VQUndHc0RPMQpFcXZKWEhNbG5LRDg4MVVpVjcyc2J0YURoTjlYQ3JEV0JSTEFmdWtoMkx4N0xOdGZMVmdCT1FQU0l6eVVnRmI3CitwTTZrV1BLSkJhY0xaaHNZTkxDQXRPQlFPbjFkSUVXa3pMeVd6MjNBb0dBR2VCU01Yb1daZVNXS2VCSmRkcFEKRWRmVFlaZEhWT1F0U28yTWNnazl4S1JLUkprSXhvbTA0ZjB3dW1JdjU4N2ttRnlvTVp0Ty9XdGNSdnNGdXVySgp2VlFqK2NEWCtqMFMrdyt5NHc1UElhaTMzcTVCbmV3c3RuWjdITXR5amp4bklQT25PSVJGb1VFZUpzOUNZV21xCjUxL2daWkNoN0xGMU5HdkpkQXdmbVNFQ2dZQThWaE52bXVIazNsaHR2NytGQVJIYzRENHpNRXhhUzk4bStCWHkKdVFPdGczYzJoRDFUZHpvcXIrR1pzT21FbG8rTk00SXgyT2VhWVBTaU44UDY4NS9xMHFCUnJMbTBoazIyNUIwbQpmcGZtNDFqT01wUlFpbGdiT0MxVS8yRjlFelZQSDJSWU80MlRJVXZtYVlBcTd1c2l0MU5WMkIya3pPQ0YzT2ZFCnBEcittd0tCZ0dCL2Z3Mlc3N1B1ZDN1SERPTlBkM1IzemxlbW9WYytLcitwbjljNWEvOVlEeVYwbk1ucUFDa0EKOC9yNDZrVlErVGl2S1dXTnZZSW5lczVib2JhbWRRcDd0M3huWUFHV0dQdml1cE9XdkFlTXhtdE1EbzMwNk5jQwovbXcwVGlpb3hrK0FjOUpCRjFmYWJmWWI5RTlUQWF1TlAwdjJiZkxibDRYbk5mdGx1VEI0Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURGRENDQWZ5Z0F3SUJBZ0lSQU94dEovWnBGQ3BLa0pNRWNZZ1hRNjB3RFFZSktvWklodmNOQVFFTEJRQXcKRkRFU01CQUdBMVVFQXhNSllYQnBjMmw0TFdOaE1CNFhEVEl6TURjeE9EQTVNelEwTUZvWERUSTBNRGN4TnpBNQpNelEwTUZvd0ZERVNNQkFHQTFVRUF4TUpZWEJwYzJsNExXTmhNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DCkFROEFNSUlCQ2dLQ0FRRUEzVXA4d1VGMkNLSys1MHVHSTBZTEJ0QWJDYzlVMFlnQ2tmanB6TXFBOHc3RUpOMncKTWpYSnp2dk1POVBnMHpsdWZkVzA3eUNzcmp3UVNaQ253NVpvc1JpSGt0VFFxTnVCRkx3UlNpaVEzOGRDRGY4ZAo3OTJSdmxrNy90bVdVUHNVRG1NSDFzQW92S3lIN0xwL3FMZTNDdy9hU3BHSENzbWVSNE00cXQvS0lheUF5MWhiCnRZMmJHSnp0ZzZYWU80blBMa3F2aENyV0ZLRXpBaW02Ylg2OUF3NDROKzFFRUdIWnR4Q1pTaUNQcHg5WjB4YngKckhNTXY2SmF0d2VXUi9LY2IrbnRtZmlhY2E4bXcweFl5VlptMi9TclprU3hiZytNSHJVWGgyYmNJazZBYnVEeQpZMTBwQUMvYUp6ckZlQ0RuRkIxVTNMTlhrZVRqeCt1NGdmK3haUUlEQVFBQm8yRXdYekFPQmdOVkhROEJBZjhFCkJBTUNBcVF3SFFZRFZSMGxCQll3RkFZSUt3WUJCUVVIQXdFR0NDc0dBUVVGQndNQ01BOEdBMVVkRXdFQi93UUYKTUFNQkFmOHdIUVlEVlIwT0JCWUVGTWtncDdXcC9OeDZVc0Mya1JhL1JmQlZLTkd0TUEwR0NTcUdTSWIzRFFFQgpDd1VBQTRJQkFRQUpBb0JlRlpTTkhPMVpsVlEwa3puTFhwWHpCVm94aDdYdk5LS1BRTFZrZ3RZdHliWnNkZzczCjFvT0c2aVBiRjRFM2R2RTVvTldzT2pKRWNCWFJqUXpIVGRXS1dHYWpVdDl2RTQybk1NOXkvVm9IUUJtNkRhQ1AKMWRDQzIyUVoyTHJnQ04velJyZjlQR3R3VXhmbjJsZzhyS21QZmRHL0RjNGJYOXNyQnN0d1p2eG5MM3dGTitXMQpRejFLM1gwcVNMU3V2VDluVFFEY0lWd3BmTlczWktVeHVVems1TnZNd3dwWXZvVHQ3ODNmalY5ZUpHU3M2UDFxCndXOVc1M29lVjJsanc3RVhwKzVOOEdhc0xaMWRER3lOWkphMm10UTBmUG9ZaDNHeHN5QWhyWU01OVhEM1V2RVYKcS9oT3ZMME9SSmtpWERuaXBpbk1lemhYakdnaG5XK2wKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+---
+# Source: apisix/templates/tls-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-apisix-dashboard-tls
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: dashboard
+type: kubernetes.io/tls
+data:
+  tls.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ0RENDQXNpZ0F3SUJBZ0lSQU9QbndyT2wrT0pZellvVDBoaVFvSFl3RFFZSktvWklodmNOQVFFTEJRQXcKRkRFU01CQUdBMVVFQXhNSllYQnBjMmw0TFdOaE1CNFhEVEl6TURjeE9EQTVNelEwTVZvWERUSTBNRGN4TnpBNQpNelEwTVZvd0tERW1NQ1FHQTFVRUF4TWRjbVZzWldGelpTMXVZVzFsTFdGd2FYTnBlQzFrWVhOb1ltOWhjbVF3CmdnRWlNQTBHQ1NxR1NJYjNEUUVCQVFVQUE0SUJEd0F3Z2dFS0FvSUJBUURDaTROVTlnUDIvVDZwNDVsd1RNbGgKNC9tam4reU9yZktrWkNxZnRtbzdGTStPRDBBb0NaSFlJdW1tME9GRytBcHVIR0xOKzdwd1FFL2lZNS9JUVU5VAo3K1lPelpLQmZXYVFzRUZMeUk1c1EwdXNKNCtoUE45T0RxYWoxRHREN0l5SURUN3JlV3pVMWh4UnFVbjV1V1J0CnRWMitibWc4S00vR3BZdG1PUWFSdXdjWnBSbzBFL0tCd0FNZnVhMmdna0tURjZpRnFhVC9RQW1EN3MzcGh1V1gKdS9DR2JLMzNHRXpzWVdUOW5iYUd1YVZEa3BOeDBrSkZWalh4UEZaQVY5ZzdWN25xeWg5VGdXVlRJcFVKTzVkZgpLNFBuNzRXb1BOT0dTQk5TS2FFWlllaDAwd21WMktPSU55OG9Oa21Vdnd2ZGJEU2U5cWhEL3R1VXRwekIydDJOCkFnTUJBQUdqZ2dFWE1JSUJFekFPQmdOVkhROEJBZjhFQkFNQ0JhQXdIUVlEVlIwbEJCWXdGQVlJS3dZQkJRVUgKQXdFR0NDc0dBUVVGQndNQ01Bd0dBMVVkRXdFQi93UUNNQUF3SHdZRFZSMGpCQmd3Rm9BVXlTQ250YW44M0hwUwp3TGFSRnI5RjhGVW8wYTB3Z2JJR0ExVWRFUVNCcWpDQnA0SWRjbVZzWldGelpTMXVZVzFsTFdGd2FYTnBlQzFrCllYTm9ZbTloY21TQ0pISmxiR1ZoYzJVdGJtRnRaUzFoY0dsemFYZ3RaR0Z6YUdKdllYSmtMbWhoY21KdmNvSW8KY21Wc1pXRnpaUzF1WVcxbExXRndhWE5wZUMxa1lYTm9ZbTloY21RdWFHRnlZbTl5TG5OMlk0STJjbVZzWldGegpaUzF1WVcxbExXRndhWE5wZUMxa1lYTm9ZbTloY21RdWFHRnlZbTl5TG5OMll5NWpiSFZ6ZEdWeUxteHZZMkZzCk1BMEdDU3FHU0liM0RRRUJDd1VBQTRJQkFRQkFkZE5zbVowY2JaKzlJdDcrUkJMUm0xNC9PbzREaHdLZUdFN2sKcHowaHNkaTQyalF2Q0JEU1JQaUc1NGlZcFlVWnB0Wm5UYXpoZHBlUWdybStiTklScEJYenhwdnk0RzBhaUVkYwp5QkJXN2J4ZXR6LytnY0R2dVZXMW5QczBRbHA2d3pmVkxUTUVRdzBJQ2lWdW5qcXo5eVdqVTJYYnp2Y3drR24xCk5KazlBRm1nN090VGxrZllzVXduRUJlaWhJdUZDK0tTaWRuQlNtRWM4TTFrU2ErVyswL2Jzc09NTjlRbEJHQlMKWmFIbklzYmhuSUh1ejlQN0NYb3QvRVZhWlNaRlpIdzdaaGl0M0pEY0daVTFSYWY4WHEzZW93VlE2L09aT1ZXbQpTSnRqcEhya2dJem5hQlJ3d3NDbGRjME5CSjlpakR2bGNSakliY1RETEVQQ3lraHYKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  tls.key: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBd291RFZQWUQ5djArcWVPWmNFekpZZVA1bzUvc2pxM3lwR1FxbjdacU94VFBqZzlBCktBbVIyQ0xwcHREaFJ2Z0tiaHhpemZ1NmNFQlA0bU9meUVGUFUrL21EczJTZ1gxbWtMQkJTOGlPYkVOTHJDZVAKb1R6ZlRnNm1vOVE3USt5TWlBMCs2M2xzMU5ZY1VhbEorYmxrYmJWZHZtNW9QQ2pQeHFXTFpqa0drYnNIR2FVYQpOQlB5Z2NBREg3bXRvSUpDa3hlb2hhbWsvMEFKZys3TjZZYmxsN3Z3aG15dDl4aE03R0ZrL1oyMmhybWxRNUtUCmNkSkNSVlkxOFR4V1FGZllPMWU1NnNvZlU0RmxVeUtWQ1R1WFh5dUQ1KytGcUR6VGhrZ1RVaW1oR1dIb2ROTUoKbGRpamlEY3ZLRFpKbEw4TDNXdzBudmFvUS83YmxMYWN3ZHJkalFJREFRQUJBb0lCQUZqZXhvWGZSSHhsdjJSNApWaldZdmozN21LU0lmOVhGM0p3QUxnQjdvaGVQTUNsakNobkFGV0c0d1NlMUw5UHRwMFlacllFUFIySFQzeW81Ci9Gbk1pK0o2S293RW1MS1NpSEg4TWpmZVRFRmtsSUwySjRTdWZBdjZZV0ZocUJrbFRDVXlkOVcxeUdPSjA3SHkKTlpyZ2QrSXVBYjdtVExOK3FUdkRqK1NJbEZtcFc1YndycWk2WU9DRDBtZTlLUHVSRWNpYlJETTljUUl0MHk5TwpGMzJ2TzlNZHFjcWM0M0Z3bHpQMnhtRDVuWExyWlhpT0xZd3h6cFNhNE83YVNZUVFmWFh1YUl5MFp2ZWhOMk5BCjRjWG5QV2RzWjgvSzdxbGtKbjh4eC9uYTY4ejR4K2ZURGo5NXg4cWlqT0FyNldCejNWVk5CbWRQTUVEeHdiQmMKLzVVK1JZRUNnWUVBeTNSSGpjcTNIcWU5U3hRMWIzdGR1M01lV2N5NS9KaEdTRG5OemFYM2FXUEpzdjZ6V3JTMgpGZ2tQNjNhV3plWkNjNm40SnZsUk9ObDZ6T2NjUDQyZVhuSnJuRHZPWVdTR05XaXdBUWtkM0s2QjFVNGlneFlFCktvZmd2Y2hRRjJlbXY0dHRmYWpGd0VXak1HVEZmUG9qNXpmL2lOdTViUGZmOWxzZVQyQ3dPZEVDZ1lFQTlNb3YKQ05FUGNiOHdUaFd0eTJKbTBoNjNhQlNTWVo3S0dPQmI4ZUlPUkQzOVVJLzJGcFFkSnFkRjlrNU10eW5KbXVGaQpJOTZYYXExTFF1dmxTZTdKWnRsdFNJZ2FOQkx0bFJaWW04Wndna2d3TWlYVFlwMEJlUS83YlhOQUZaK3pXcElkCjdEa1RLdW40Ty9jaUhlTDgvRTlIVXB0bEhnUi9WQWNqVy9MS212MENnWUEzbE55M2I5bjNGZnd3dHFTaWdDRnIKUkZmV1VJZSs2aHJKUUlGbzNSNXFQRWl1RGNjUjBLeXQrR3ZROStUYSt6ek1QSEwrc3IzdHVmeENYaURwZTliNApGbW92bEdjZFZFa1Y3ak9uRk1hRHMyamt6U1BBakJNM1MwZXFrVDdRSmhEMzR5OVdWUFV4UWRVRE00U0FVQlhlCjVQMTZkZ3lDS0hXVzUrMnY0Y3BEQVFLQmdIcStmd011d1UzS0RwQzQ4aUtQdnZzUmgrbmFsdVA0V1dKTDdnN0YKeVYyU3I5aWJ0MHZ2RFFiNnpXd0tLeEdWRkpCaS8zRDVCbmZwV1ZtL0s0UDlCbVJhRmlCT2pzVVowS1AzUm9zbAozL2lUOWdiUFRNV2Y4TU1ocm5OZFhQNzZ5MVpZK2tRZkFtdDhVb3JQQ3Y1dGVXbVMzektlMVA5T1JnSithYzZMCldlaUpBb0dCQUxESklkUTg0ZkJ6QVdOSGVuaE1VZFBxSkNkY0wxZnZsckNtZnRmSUZXQ3poNEdsbytsRktRdzUKSVJaQmxXOGloeDdkMUtDUHNPVVE1RytuQTZwTUpxZWk4SGlYQ2RvVTkvWmZhc2dBSVhuRmFCTkdUSzhIUk5mcQp0MkwzaTQreU8zWXN6dEhpUHJlZENRTHlvTzJGdm01UGErdVZIckd5NWFRbkR0SDFFcU9MCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg==
+  ca.crt: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURGRENDQWZ5Z0F3SUJBZ0lSQU94dEovWnBGQ3BLa0pNRWNZZ1hRNjB3RFFZSktvWklodmNOQVFFTEJRQXcKRkRFU01CQUdBMVVFQXhNSllYQnBjMmw0TFdOaE1CNFhEVEl6TURjeE9EQTVNelEwTUZvWERUSTBNRGN4TnpBNQpNelEwTUZvd0ZERVNNQkFHQTFVRUF4TUpZWEJwYzJsNExXTmhNSUlCSWpBTkJna3Foa2lHOXcwQkFRRUZBQU9DCkFROEFNSUlCQ2dLQ0FRRUEzVXA4d1VGMkNLSys1MHVHSTBZTEJ0QWJDYzlVMFlnQ2tmanB6TXFBOHc3RUpOMncKTWpYSnp2dk1POVBnMHpsdWZkVzA3eUNzcmp3UVNaQ253NVpvc1JpSGt0VFFxTnVCRkx3UlNpaVEzOGRDRGY4ZAo3OTJSdmxrNy90bVdVUHNVRG1NSDFzQW92S3lIN0xwL3FMZTNDdy9hU3BHSENzbWVSNE00cXQvS0lheUF5MWhiCnRZMmJHSnp0ZzZYWU80blBMa3F2aENyV0ZLRXpBaW02Ylg2OUF3NDROKzFFRUdIWnR4Q1pTaUNQcHg5WjB4YngKckhNTXY2SmF0d2VXUi9LY2IrbnRtZmlhY2E4bXcweFl5VlptMi9TclprU3hiZytNSHJVWGgyYmNJazZBYnVEeQpZMTBwQUMvYUp6ckZlQ0RuRkIxVTNMTlhrZVRqeCt1NGdmK3haUUlEQVFBQm8yRXdYekFPQmdOVkhROEJBZjhFCkJBTUNBcVF3SFFZRFZSMGxCQll3RkFZSUt3WUJCUVVIQXdFR0NDc0dBUVVGQndNQ01BOEdBMVVkRXdFQi93UUYKTUFNQkFmOHdIUVlEVlIwT0JCWUVGTWtncDdXcC9OeDZVc0Mya1JhL1JmQlZLTkd0TUEwR0NTcUdTSWIzRFFFQgpDd1VBQTRJQkFRQUpBb0JlRlpTTkhPMVpsVlEwa3puTFhwWHpCVm94aDdYdk5LS1BRTFZrZ3RZdHliWnNkZzczCjFvT0c2aVBiRjRFM2R2RTVvTldzT2pKRWNCWFJqUXpIVGRXS1dHYWpVdDl2RTQybk1NOXkvVm9IUUJtNkRhQ1AKMWRDQzIyUVoyTHJnQ04velJyZjlQR3R3VXhmbjJsZzhyS21QZmRHL0RjNGJYOXNyQnN0d1p2eG5MM3dGTitXMQpRejFLM1gwcVNMU3V2VDluVFFEY0lWd3BmTlczWktVeHVVems1TnZNd3dwWXZvVHQ3ODNmalY5ZUpHU3M2UDFxCndXOVc1M29lVjJsanc3RVhwKzVOOEdhc0xaMWRER3lOWkphMm10UTBmUG9ZaDNHeHN5QWhyWU01OVhEM1V2RVYKcS9oT3ZMME9SSmtpWERuaXBpbk1lemhYakdnaG5XK2wKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+---
+# Source: apisix/templates/control-plane/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-apisix-control-plane-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+data:
+  config.yaml: |
+    
+    nginx_config:
+      error_log: /dev/stderr
+      stream:
+        access_log: /dev/stdout
+      http:
+        access_log: /dev/stdout
+      http_configuration_snippet: |
+        proxy_buffering off;
+    apisix:
+      control:
+        ip: 0.0.0.0
+        port: 9090
+    deployment:
+      role: control_plane
+      role_control_plane:
+          config_provider: etcd
+          conf_server:
+            listen: 0.0.0.0:9280
+            cert: /bitnami/certs/tls.crt
+            cert_key: /bitnami/certs/tls.key
+      etcd:
+        host:
+          - http://release-name-etcd-0.release-name-etcd-headless:2379
+          - http://release-name-etcd-1.release-name-etcd-headless:2379
+          - http://release-name-etcd-2.release-name-etcd-headless:2379
+        prefix: /apisix
+        timeout: 30
+        use_grpc: false
+        startup_retry: 60
+      certs:
+        cert: /bitnami/certs/tls.crt
+        cert_key: /bitnami/certs/tls.key
+        client_ca_cert: /bitnami/certs/ca.crt
+      admin:
+        https_admin: true
+        admin_api_mtls:
+          admin_ssl_cert: /bitnami/certs/tls.crt
+          admin_ssl_cert_key: /bitnami/certs/tls.key
+    
+        allow_admin:
+          - 0.0.0.0/0
+    
+        admin_key:
+          - name: admin
+            key: "{{APISIX_ADMIN_API_TOKEN}}"
+            role: admin
+          - name: viewer
+            key: "{{APISIX_VIEWER_API_TOKEN}}"
+            role: viewer
+        admin_listen:
+            port: 9180
+        enable_admin_cors: true         # Admin API support CORS response headers.
+    discovery:
+      kubernetes:
+        service:
+          schema: https #default https
+    
+          # apiserver host, options [ipv4, ipv6, domain, environment variable]
+          host: ${KUBERNETES_SERVICE_HOST}
+    
+          # apiserver port, options [port number, environment variable]
+          port: ${KUBERNETES_SERVICE_PORT}
+    
+        client:
+          # serviceaccount token or token_file
+          token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    
+        default_weight: 50 # weight assigned to each discovered endpoint. default 50, minimum 0
+---
+# Source: apisix/templates/dashboard/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-apisix-dashboard-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: dashboard
+data:
+  config.yaml: |
+    conf:
+      listen:
+        host: 0.0.0.0
+        port: 8080
+      ssl:
+        host: 0.0.0.0
+        port: 8443
+        cert: /bitnami/certs/tls.crt
+        key: /bitnami/certs/tls.key
+      etcd:
+        prefix: "/apisix"
+        endpoints:
+          - http://release-name-etcd-0.release-name-etcd-headless:2379
+          - http://release-name-etcd-1.release-name-etcd-headless:2379
+          - http://release-name-etcd-2.release-name-etcd-headless:2379
+      log:
+        error_log:
+          level: warn
+          file_path: /dev/stderr
+        access_log:
+          file_path: /dev/stdout
+    authentication:
+      secret: secret
+      expire_time: 3600
+      users:
+        - username: "{{ APISIX_DASHBOARD_USER }}"
+          password: "{{ APISIX_DASHBOARD_PASSWORD }}"
+    plugins:
+      - api-breaker
+      - authz-casbin
+      - authz-casdoor
+      - authz-keycloak
+      - aws-lambda
+      - azure-functions
+      - basic-auth
+      # - batch-requests
+      - clickhouse-logger
+      - client-control
+      - consumer-restriction
+      - cors
+      - csrf
+      - datadog
+      # - dubbo-proxy
+      - echo
+      - error-log-logger
+      # - example-plugin
+      - ext-plugin-post-req
+      - ext-plugin-post-resp
+      - ext-plugin-pre-req
+      - fault-injection
+      - file-logger
+      - forward-auth
+      - google-cloud-logging
+      - grpc-transcode
+      - grpc-web
+      - gzip
+      - hmac-auth
+      - http-logger
+      - ip-restriction
+      - jwt-auth
+      - kafka-logger
+      - kafka-proxy
+      - key-auth
+      - ldap-auth
+      - limit-conn
+      - limit-count
+      - limit-req
+      - loggly
+      # - log-rotate
+      - mocking
+      # - node-status
+      - opa
+      - openid-connect
+      - opentelemetry
+      - openwhisk
+      - prometheus
+      - proxy-cache
+      - proxy-control
+      - proxy-mirror
+      - proxy-rewrite
+      - public-api
+      - real-ip
+      - redirect
+      - referer-restriction
+      - request-id
+      - request-validation
+      - response-rewrite
+      - rocketmq-logger
+      - server-info
+      - serverless-post-function
+      - serverless-pre-function
+      - skywalking
+      - skywalking-logger
+      - sls-logger
+      - splunk-hec-logging
+      - syslog
+      - tcp-logger
+      - traffic-split
+      - ua-restriction
+      - udp-logger
+      - uri-blocker
+      - wolf-rbac
+      - zipkin
+      - elasticsearch-logge
+      - openfunction
+      - tencent-cloud-cls
+      - ai
+      - cas-auth
+---
+# Source: apisix/templates/data-plane/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-apisix-data-plane-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: data-plane
+data:
+  00_default_config.yaml: |
+    
+    apisix:
+      node_listen: 9080
+      enable_admin: false
+      ssl:
+        enable: true
+        listen:
+          - port: 9443
+            enable_http2: true
+        ssl_trusted_certificate: /bitnami/certs/ca.crt
+      control:
+        ip: 0.0.0.0
+        port: 9090
+    nginx_config:
+      error_log: /dev/stderr
+      stream:
+        access_log: /dev/stdout
+      http:
+        access_log: /dev/stdout
+      http_configuration_snippet: |
+        proxy_buffering off;
+    deployment:
+      role: data_plane
+      role_data_plane:
+        config_provider: control_plane
+        control_plane:
+          host:
+            - https://release-name-apisix-control-plane:9280
+          prefix: /apisix
+          timeout: 30
+      certs:
+        cert: /bitnami/certs/tls.crt
+        cert_key: /bitnami/certs/tls.key
+        client_ca_cert: /bitnami/certs/ca.crt
+    discovery:
+      kubernetes:
+        service:
+          # apiserver schema, options [http, https]
+          schema: https #default https
+    
+          # apiserver host, options [ipv4, ipv6, domain, environment variable]
+          host: ${KUBERNETES_SERVICE_HOST} #default ${KUBERNETES_SERVICE_HOST}
+    
+          # apiserver port, options [port number, environment variable]
+          port: ${KUBERNETES_SERVICE_PORT}  #default ${KUBERNETES_SERVICE_PORT}
+    
+        client:
+          # serviceaccount token or token_file
+          token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    
+        default_weight: 50 # weight assigned to each discovered endpoint. default 50, minimum 0
+---
+# Source: apisix/templates/ingress-controller/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-apisix-ingress-controller-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: ingress-controller
+data:
+  config.yaml: |
+    # log options
+    log_level: "info"
+    log_output: "stderr"
+    https_listen: ":8443"
+    cert_file: "/bitnami/certs/tls.crt"
+    key_file: "/bitnami/certs/tls.key"
+    http_listen: ":8080"
+    ingress_publish_service: "harbor/release-name-apisix-data-plane"
+    enable_profiling: true
+    apisix-resource-sync-interval: 1h
+    kubernetes:
+      kubeconfig: ""
+      resync_interval: "6h"
+      election_id: "release-name-apisix-ingress-controller-leader"
+      ingress_class: "apisix"
+      ingress_version: "networking/v1"
+      watch_endpointslices: false
+      apisix_route_version: "apisix.apache.org/v2"
+      enable_gateway_api: false
+      apisix_version: "apisix.apache.org/v2"
+      plugin_metadata_cm: ""
+    apisix:
+      admin_api_version: "v3"
+      default_cluster_base_url: https://release-name-apisix-control-plane:9180/apisix/admin
+      default_cluster_admin_key: "{{APISIX_ADMIN_API_TOKEN}}"
+      default_cluster_name: "default"
+---
+# Source: apisix/templates/control-plane/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-apisix-harbor-control-plane
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+rules:
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list", "watch"]
+---
+# Source: apisix/templates/data-plane/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-apisix-harbor-data-plane
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: data-plane
+rules:
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get", "list", "watch"]
+---
+# Source: apisix/templates/ingress-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-apisix-harbor-ingress-controller
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: ingress-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - "*"
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - endpoints
+      - pods
+      - services
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses/status
+    verbs:
+      - update
+  - apiGroups:
+      - apisix.apache.org
+    resources:
+      - apisixroutes
+      - apisixroutes/status
+      - apisixupstreams
+      - apisixupstreams/status
+      - apisixtlses
+      - apisixtlses/status
+      - apisixclusterconfigs
+      - apisixclusterconfigs/status
+      - apisixconsumers
+      - apisixconsumers/status
+      - apisixpluginconfigs
+      - apisixpluginconfigs/status
+      - apisixglobalrules
+      - apisixglobalrules/status
+    verbs:
+      - '*'
+  - apiGroups:
+      - coordination.k8s.io
+    resources:
+      - leases
+    verbs:
+      - '*'
+  - apiGroups:
+      - discovery.k8s.io
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes
+      - tlsroutes
+      - gateways
+      - gatewayclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - gateway.networking.k8s.io
+    resources:
+      - httproutes/status
+      - tlsroutes/status
+      - gateways/status
+      - gatewayclasses/status
+    verbs:
+      - update
+---
+# Source: apisix/templates/control-plane/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-apisix-harbor-control-plane
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-apisix-harbor-control-plane
+subjects:
+  - kind: ServiceAccount
+    name: release-name-apisix-control-plane
+    namespace: "harbor"
+---
+# Source: apisix/templates/data-plane/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-apisix-harbor-data-plane
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: data-plane
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-apisix-harbor-data-plane
+subjects:
+  - kind: ServiceAccount
+    name: release-name-apisix-data-plane
+    namespace: "harbor"
+---
+# Source: apisix/templates/ingress-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-apisix-harbor-ingress-controller
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: ingress-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-apisix-harbor-ingress-controller
+subjects:
+  - kind: ServiceAccount
+    name: release-name-apisix-ingress-controller
+    namespace: "harbor"
+---
+# Source: apisix/charts/etcd/templates/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-etcd-headless
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: client
+      port: 2379
+      targetPort: client
+    - name: peer
+      port: 2380
+      targetPort: peer
+  selector:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/instance: release-name
+---
+# Source: apisix/charts/etcd/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-etcd
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: "client"
+      port: 2379
+      targetPort: client
+      nodePort: null
+    - name: "peer"
+      port: 2380
+      targetPort: peer
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/instance: release-name
+---
+# Source: apisix/templates/control-plane/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-apisix-control-plane
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: https-admin-api
+      port: 9180
+      protocol: TCP
+      nodePort: null
+      targetPort: https-admin-api
+    - name: https-cfg-srv
+      port: 9280
+      protocol: TCP
+      nodePort: null
+      targetPort: https-cfg-srv
+  selector:
+    app.kubernetes.io/name: apisix
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+---
+# Source: apisix/templates/dashboard/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-apisix-dashboard
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: dashboard
+spec:
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: "Cluster"
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: https
+  selector:
+    app.kubernetes.io/name: apisix
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: dashboard
+---
+# Source: apisix/templates/data-plane/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-apisix-data-plane
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: data-plane
+spec:
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: "Cluster"
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: https
+  selector:
+    app.kubernetes.io/name: apisix
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: data-plane
+---
+# Source: apisix/templates/ingress-controller/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-apisix-ingress-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: ingress-controller
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http
+    - name: https
+      port: 443
+      protocol: TCP
+      nodePort: null
+      targetPort: https
+  selector:
+    app.kubernetes.io/name: apisix
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: ingress-controller
+---
+# Source: apisix/templates/control-plane/dep-ds.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-apisix-control-plane
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: control-plane
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: apisix
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: apisix
+      app.kubernetes.io/component: control-plane
+  template:
+    metadata:
+      annotations:
+        checksum/config: e44c382b9dbb05671c7a0d98307414d184f14c09449756faab9d13e04a667317
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/secret: fa55bc69f0a2f54dbed94d069bb803110875cb582493ab89992578986aadab57
+      labels:
+        app.kubernetes.io/name: apisix
+        helm.sh/chart: apisix-2.0.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: apisix
+        app.kubernetes.io/component: control-plane
+    spec:
+      serviceAccountName: release-name-apisix-control-plane
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: apisix
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: control-plane
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the APISIX configuration files, as well
+        # as preparing the Nginx server. We need to use a volume because we're working with
+        # ReadOnlyRootFilesystem
+        - name: prepare-apisix
+          image: docker.io/bitnami/apisix:3.4.0-debian-11-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              cp -R /opt/bitnami/apisix/conf /usr/local/apisix
+              ln -sf /opt/bitnami/apisix/deps /usr/local/apisix
+              ln -sf /opt/bitnami/apisix/openresty/luajit/share/lua/*/apisix /usr/local/apisix
+              mkdir -p /usr/local/apisix/logs
+              # Build final config.yaml with the sections of the different files
+              find /bitnami/apisix/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' > /usr/local/apisix/conf/pre-render-config.yaml
+              render-template /usr/local/apisix/conf/pre-render-config.yaml > /usr/local/apisix/conf/config.yaml
+              rm /usr/local/apisix/conf/pre-render-config.yaml
+              chmod 644 /usr/local/apisix/conf/config.yaml
+              apisix init
+              apisix init_etcd
+              # The path is hardcoded in the conf so we need to copy them to the server folder
+              cp /bitnami/certs/tls.crt /usr/local/apisix/conf/cert/ssl_PLACE_HOLDER.crt
+              cp /bitnami/certs/tls.key /usr/local/apisix/conf/cert/ssl_PLACE_HOLDER.key
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: APISIX_ADMIN_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: admin-token
+            - name: APISIX_VIEWER_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: viewer-token
+          envFrom:
+          volumeMounts:
+            - name: apisix-dir
+              mountPath: /usr/local/apisix
+            - name: config
+              mountPath: /bitnami/apisix/conf/00_default
+            - name: tmp
+              mountPath: /tmp
+            - name: certs
+              mountPath: /bitnami/certs
+      containers:
+        - name: apisix
+          image: docker.io/bitnami/apisix:3.4.0-debian-11-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - openresty
+          args:
+            - -p
+            - /usr/local/apisix
+            - -g
+            - "daemon off;"
+          env:
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: https-admin-api
+              containerPort: 9180
+            - name: https-cfg-srv
+              containerPort: 9280
+            - name: http-control
+              containerPort: 9090
+            - name: http-metrics
+              containerPort: 9099
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /v1/healthcheck
+              port: http-control
+          volumeMounts:
+            - name: apisix-dir
+              mountPath: /usr/local/apisix
+            - name: tmp
+              mountPath: /tmp
+            - name: certs
+              mountPath: /bitnami/certs
+      volumes:
+        - name: config
+          configMap:
+            name: release-name-apisix-control-plane-default
+        - name: certs
+          secret:
+            secretName: release-name-apisix-control-plane-tls
+        - name: apisix-dir
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+# Source: apisix/templates/dashboard/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-apisix-dashboard
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: dashboard
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: apisix
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: apisix
+      app.kubernetes.io/component: dashboard
+  template:
+    metadata:
+      annotations:
+        checksum/config: d34ef0d26151e87c47842e61f31943c01b8ca402ef54ae6af049d7f63bb8fa00
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/secret: 7d78dac29f4088e7d2571bbf5b968e12aecbe23ee95f650d12162cb1fec40625
+      labels:
+        app.kubernetes.io/name: apisix
+        helm.sh/chart: apisix-2.0.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: apisix
+        app.kubernetes.io/component: dashboard
+    spec:
+      serviceAccountName: release-name-apisix-dashboard
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: apisix
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: csi-provider
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the APISIX configuration files, as well
+        # as preparing the Nginx server. We need to use a volume because we're working with
+        # ReadOnlyRootFilesystem
+        - name: render-conf
+          image: docker.io/bitnami/apisix:3.4.0-debian-11-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final config.yaml with the sections of the different files
+              find /bitnami/apisix/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' > /bitnami/apisix/rendered-conf/pre-render-config.yaml
+              render-template /bitnami/apisix/rendered-conf/pre-render-config.yaml > /bitnami/apisix/rendered-conf/config.yaml
+              chmod 644 /bitnami/apisix/rendered-conf/config.yaml
+              rm /bitnami/apisix/rendered-conf/pre-render-config.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: APISIX_ADMIN_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: admin-token
+            - name: APISIX_VIEWER_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: viewer-token
+            - name: APISIX_DASHBOARD_USER
+              value: "user"
+            - name: APISIX_DASHBOARD_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-dashboard
+                  key: password
+          envFrom:
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /bitnami/apisix/rendered-conf
+            - name: config
+              mountPath: /bitnami/apisix/conf/00_default
+            - name: certs
+              mountPath: /bitnami/certs
+      containers:
+        - name: apisix-dashboard
+          image: docker.io/bitnami/apisix-dashboard:3.0.1-debian-11-r22
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - -c
+            - /bitnami/apisix/conf/config.yaml
+            - -p
+            - /opt/bitnami/apisix-dashboard
+          env:
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 8443
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /ping
+              port: http
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /ping
+              port: http
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /bitnami/apisix/conf
+            - name: log-dir
+              mountPath: /opt/bitnami/apisix-dashboard/logs
+            - name: certs
+              mountPath: /bitnami/certs
+      volumes:
+        - name: config
+          configMap:
+            name: release-name-apisix-dashboard-default
+        - name: certs
+          secret:
+            secretName: release-name-apisix-dashboard-tls
+        - name: log-dir
+          emptyDir: {}
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: apisix/templates/data-plane/dep-ds.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-apisix-data-plane
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: data-plane
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: apisix
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: apisix
+      app.kubernetes.io/component: data-plane
+  template:
+    metadata:
+      annotations:
+        checksum/config: fb5e6f5530a52743b98c151d42ef3d67938b085a239d1e129a4dc4a71325e304
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/secret: a2f96e76bfb0510694f683f1611889bff6e9208b560d4833304f99974373cdca
+      labels:
+        app.kubernetes.io/name: apisix
+        helm.sh/chart: apisix-2.0.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: apisix
+        app.kubernetes.io/component: data-plane
+    spec:
+      serviceAccountName: release-name-apisix-data-plane
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: apisix
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: data-plane
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-control-plane
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              host="https://release-name-apisix-control-plane:9180"
+        
+              check_control_plane() {
+                  if curl --max-time 5 -k -I "$host"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              echo "Checking connection to $host"
+              if retry_while "check_control_plane"; then
+                  echo "Connected to $host"
+              else
+                  echo "Error connecting to $host"
+                  exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the APISIX configuration files, as well
+        # as preparing the Nginx server. We need to use a volume because we're working with
+        # ReadOnlyRootFilesystem
+        - name: prepare-apisix
+          image: docker.io/bitnami/apisix:3.4.0-debian-11-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              cp -R /opt/bitnami/apisix/conf /usr/local/apisix
+              ln -sf /opt/bitnami/apisix/deps /usr/local/apisix
+              ln -sf /opt/bitnami/apisix/openresty/luajit/share/lua/*/apisix /usr/local/apisix
+              mkdir -p /usr/local/apisix/logs
+              # Build final config.yaml with the sections of the different files
+              find /bitnami/apisix/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' > /usr/local/apisix/conf/pre-render-config.yaml
+              render-template /usr/local/apisix/conf/pre-render-config.yaml > /usr/local/apisix/conf/config.yaml
+              rm /usr/local/apisix/conf/pre-render-config.yaml
+              chmod 644 /usr/local/apisix/conf/config.yaml
+              apisix init
+              # The path is hardcoded in the conf so we need to copy them to the server folder
+              cp /bitnami/certs/tls.crt /usr/local/apisix/conf/cert/ssl_PLACE_HOLDER.crt
+              cp /bitnami/certs/tls.key /usr/local/apisix/conf/cert/ssl_PLACE_HOLDER.key
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: APISIX_ADMIN_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: admin-token
+            - name: APISIX_VIEWER_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: viewer-token
+          envFrom:
+          volumeMounts:
+            - name: apisix-dir
+              mountPath: /usr/local/apisix
+            - name: config
+              mountPath: /bitnami/apisix/conf/00_default
+            - name: tmp
+              mountPath: /tmp
+            - name: certs
+              mountPath: /bitnami/certs
+      containers:
+        - name: apisix
+          image: docker.io/bitnami/apisix:3.4.0-debian-11-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - openresty
+          args:
+            - -p
+            - /usr/local/apisix
+            - -g
+            - "daemon off;"
+          env:
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 9080
+            - name: https
+              containerPort: 9443
+            - name: http-control
+              containerPort: 9090
+            - name: http-metrics
+              containerPort: 9099
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /v1/healthcheck
+              port: http-control
+          volumeMounts:
+            - name: apisix-dir
+              mountPath: /usr/local/apisix
+            - name: tmp
+              mountPath: /tmp
+            - name: certs
+              mountPath: /bitnami/certs
+            - name: control-plane-certs
+              mountPath: /etc/ssl/certs/ca.crt
+              subPath: ca.crt
+      volumes:
+        - name: config
+          configMap:
+            name: release-name-apisix-data-plane-default
+        - name: certs
+          secret:
+            secretName: release-name-apisix-data-plane-tls
+        - name: apisix-dir
+          emptyDir: {}
+        - name: control-plane-certs
+          secret:
+            secretName: release-name-apisix-control-plane-tls
+        - name: tmp
+          emptyDir: {}
+---
+# Source: apisix/templates/ingress-controller/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-apisix-ingress-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: apisix
+    helm.sh/chart: apisix-2.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: apisix
+    app.kubernetes.io/component: ingress-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: apisix
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: apisix
+      app.kubernetes.io/component: ingress-controller
+  template:
+    metadata:
+      annotations:
+        checksum/config: ac893e6adfe9046c9ec6153718646c3dd7d0ee0f290c0d1a552ae8f2b9b910a3
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/secret: 8d3b288a2dbf93ba38f6b9e8b2a0e23823536b3c440804c1012c853061d65604
+      labels:
+        app.kubernetes.io/name: apisix
+        helm.sh/chart: apisix-2.0.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: apisix
+        app.kubernetes.io/component: ingress-controller
+    spec:
+      serviceAccountName: release-name-apisix-ingress-controller
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: apisix
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: ingress-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-control-plane
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              host="https://release-name-apisix-control-plane:9180"
+        
+              check_control_plane() {
+                  if curl --max-time 5 -k -I "$host"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              echo "Checking connection to $host"
+              if retry_while "check_control_plane"; then
+                  echo "Connected to $host"
+              else
+                  echo "Error connecting to $host"
+                  exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the APISIX configuration files, as well
+        # as preparing the Nginx server. We need to use a volume because we're working with
+        # ReadOnlyRootFilesystem
+        - name: render-conf
+          image: docker.io/bitnami/apisix:3.4.0-debian-11-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final config.yaml with the sections of the different files
+              find /bitnami/apisix/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' > /bitnami/apisix/rendered-conf/pre-render-config.yaml
+              render-template /bitnami/apisix/rendered-conf/pre-render-config.yaml > /bitnami/apisix/rendered-conf/config.yaml
+              chmod 644 /bitnami/apisix/rendered-conf/config.yaml
+              rm /bitnami/apisix/rendered-conf/pre-render-config.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: APISIX_ADMIN_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: admin-token
+            - name: APISIX_VIEWER_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-apisix-control-plane-api-token
+                  key: viewer-token
+          envFrom:
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /bitnami/apisix/rendered-conf
+            - name: config
+              mountPath: /bitnami/apisix/conf/00_default
+            - name: certs
+              mountPath: /bitnami/certs
+      containers:
+        - name: apisix-ingress-controller
+          image: docker.io/bitnami/apisix-ingress-controller:1.6.1-debian-11-r22
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - ingress
+            - --config-path
+            - /bitnami/apisix-ingress-controller/conf/config.yaml
+          env:
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 8443
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /bitnami/apisix-ingress-controller/conf
+            - name: tmp
+              mountPath: /tmp
+            - name: certs
+              mountPath: /bitnami/certs
+            - name: control-plane-certs
+              mountPath: /etc/ssl/certs/ca.crt
+              subPath: ca.crt
+      volumes:
+        - name: config
+          configMap:
+            name: release-name-apisix-ingress-controller-default
+        - name: rendered-config
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: certs
+          secret:
+            secretName: release-name-apisix-ingress-controller-tls
+        - name: control-plane-certs
+          secret:
+            secretName: release-name-apisix-control-plane-tls
+---
+# Source: apisix/charts/etcd/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-etcd
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: etcd
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etcd
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: etcd
+  serviceName: release-name-etcd-headless
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: etcd
+        helm.sh/chart: etcd-9.0.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: etcd
+      annotations:
+        checksum/token-secret: eedb333f3032ec6d83d77827910e3d08d9cb97f396af6e4d284c7f6454af8104
+    spec:
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: etcd
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: "default"
+      containers:
+        - name: etcd
+          image: docker.io/bitnami/etcd:3.5.9-debian-11-r20
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_STS_NAME
+              value: "release-name-etcd"
+            - name: ETCDCTL_API
+              value: "3"
+            - name: ETCD_ON_K8S
+              value: "yes"
+            - name: ETCD_START_FROM_SNAPSHOT
+              value: "no"
+            - name: ETCD_DISASTER_RECOVERY
+              value: "no"
+            - name: ETCD_NAME
+              value: "$(MY_POD_NAME)"
+            - name: ETCD_DATA_DIR
+              value: "/bitnami/etcd/data"
+            - name: ETCD_LOG_LEVEL
+              value: "info"
+            - name: ALLOW_NONE_AUTHENTICATION
+              value: "yes"
+            - name: ETCD_AUTH_TOKEN
+              value: "jwt,priv-key=/opt/bitnami/etcd/certs/token/jwt-token.pem,sign-method=RS256,ttl=10m"
+            - name: ETCD_ADVERTISE_CLIENT_URLS
+              value: "http://$(MY_POD_NAME).release-name-etcd-headless.harbor.svc.cluster.local:2379,http://release-name-etcd.harbor.svc.cluster.local:2379"
+            - name: ETCD_LISTEN_CLIENT_URLS
+              value: "http://0.0.0.0:2379"
+            - name: ETCD_INITIAL_ADVERTISE_PEER_URLS
+              value: "http://$(MY_POD_NAME).release-name-etcd-headless.harbor.svc.cluster.local:2380"
+            - name: ETCD_LISTEN_PEER_URLS
+              value: "http://0.0.0.0:2380"
+            - name: ETCD_INITIAL_CLUSTER_TOKEN
+              value: "etcd-cluster-k8s"
+            - name: ETCD_INITIAL_CLUSTER_STATE
+              value: "new"
+            - name: ETCD_INITIAL_CLUSTER
+              value: "release-name-etcd-0=http://release-name-etcd-0.release-name-etcd-headless.harbor.svc.cluster.local:2380,release-name-etcd-1=http://release-name-etcd-1.release-name-etcd-headless.harbor.svc.cluster.local:2380,release-name-etcd-2=http://release-name-etcd-2.release-name-etcd-headless.harbor.svc.cluster.local:2380"
+            - name: ETCD_CLUSTER_DOMAIN
+              value: "release-name-etcd-headless.harbor.svc.cluster.local"
+          envFrom:
+          ports:
+            - name: client
+              containerPort: 2379
+              protocol: TCP
+            - name: peer
+              containerPort: 2380
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - /opt/bitnami/scripts/etcd/healthcheck.sh
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - /opt/bitnami/scripts/etcd/healthcheck.sh
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /opt/bitnami/scripts/etcd/prestop.sh
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/etcd
+            - name: etcd-jwt-token
+              mountPath: /opt/bitnami/etcd/certs/token/
+              readOnly: true
+      volumes:
+        - name: etcd-jwt-token
+          secret:
+            secretName: release-name-etcd-jwt-token
+            defaultMode: 256
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"

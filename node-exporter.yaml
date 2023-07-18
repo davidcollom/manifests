@@ -1,0 +1,224 @@
+---
+# Source: node-exporter/templates/psp.yaml
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: release-name-node-exporter-harbor
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: node-exporter
+    helm.sh/chart: node-exporter-3.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+    - 'hostPath'
+  hostNetwork: true
+  hostIPC: false
+  hostPID: true
+  hostPorts:
+    - min: 0
+      max: 65535
+  runAsUser:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1001
+        max: 1001
+  seLinux:
+    rule: 'RunAsAny'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1001
+        max: 1001
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1001
+        max: 1001
+  readOnlyRootFilesystem: false
+---
+# Source: node-exporter/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-node-exporter
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: node-exporter
+    helm.sh/chart: node-exporter-3.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+---
+# Source: node-exporter/templates/psp-clusterrole.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-node-exporter-harbor-psp
+  labels:
+    app.kubernetes.io/name: node-exporter
+    helm.sh/chart: node-exporter-3.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+rules:
+  - apiGroups: ['extensions']
+    resources: ['podsecuritypolicies']
+    verbs: ['use']
+    resourceNames:
+      - release-name-node-exporter-harbor
+---
+# Source: node-exporter/templates/psp-clusterrolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-node-exporter-harbor-psp
+  labels:
+    app.kubernetes.io/name: node-exporter
+    helm.sh/chart: node-exporter-3.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-node-exporter-harbor-psp
+subjects:
+  - kind: ServiceAccount
+    name: release-name-node-exporter
+    namespace: "harbor"
+---
+# Source: node-exporter/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-node-exporter
+  namespace: "harbor"
+  annotations:
+    prometheus.io/scrape: "true"
+  labels:
+    app.kubernetes.io/name: node-exporter
+    helm.sh/chart: node-exporter-3.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: metrics
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/instance: release-name
+---
+# Source: node-exporter/templates/daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: release-name-node-exporter
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: node-exporter
+    helm.sh/chart: node-exporter-3.6.2
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+      app.kubernetes.io/instance: release-name
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
+  minReadySeconds: 0
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-exporter
+        helm.sh/chart: node-exporter-3.6.2
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      
+      serviceAccountName: release-name-node-exporter
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: node-exporter
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: node-exporter
+          image: docker.io/bitnami/node-exporter:1.6.1-debian-11-r0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - --path.procfs=/host/proc
+            - --path.sysfs=/host/sys
+            - --web.listen-address=0.0.0.0:9100
+          envFrom:
+          ports:
+            - name: metrics
+              containerPort: 9100
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: metrics
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: metrics
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+      hostNetwork: true
+      hostPID: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys

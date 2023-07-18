@@ -1,0 +1,337 @@
+---
+# Source: flink/templates/jobmanager/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  release-name-flink-jobmanager
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flink
+    helm.sh/chart: flink-0.3.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: jobmanager
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flink/templates/taskmanager/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  release-name-flink-taskmanager
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flink
+    helm.sh/chart: flink-0.3.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: taskmanager
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flink/templates/jobmanager/service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name:  release-name-flink-jobmanager
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flink
+    helm.sh/chart: flink-0.3.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: jobmanager
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-rpc
+      port: 6123
+      targetPort: 6123
+      nodePort: null
+    - name: http
+      port: 8081
+      targetPort: 8081
+      nodePort: null
+    - name: tcp-blob
+      port: 6124
+      targetPort: 6124
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: flink
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: jobmanager
+---
+# Source: flink/templates/taskmanager/service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name:  release-name-flink-taskmanager
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flink
+    helm.sh/chart: flink-0.3.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: taskmanager
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: data
+      port: 6121
+      targetPort: 6121
+      nodePort: null
+    - name: tcp-rpc
+      port: 6122
+      targetPort: 6122
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: flink
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: taskmanager
+---
+# Source: flink/templates/jobmanager/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  release-name-flink-jobmanager
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flink
+    helm.sh/chart: flink-0.3.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: jobmanager
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flink
+      app.kubernetes.io/instance: release-name
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flink
+        helm.sh/chart: flink-0.3.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: flink
+        app.kubernetes.io/component: jobmanager
+    spec:
+      priorityClassName: ""
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flink
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: jobmanager
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      containers:
+        - name: flink-jobmanager
+          image: docker.io/bitnami/flink:1.17.1-debian-11-r16
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+          ports:
+            - name: tcp-rpc
+              containerPort: 6123
+            - name: http
+              containerPort: 8081
+            - name: tcp-blob
+              containerPort: 6124
+          env:
+            - name: FLINK_MODE
+              value: jobmanager
+            - name: FLINK_CFG_JOBMANAGER_RPC_ADDRESS
+              value: "release-name-flink-jobmanager"
+            - name: FLINK_CFG_JOBMANAGER_RPC_PORT
+              value: "6123"
+            - name: FLINK_CFG_JOBMANAGER_RPC_BIND__PORT
+              value: "6123"
+            - name: FLINK_CFG_JOBMANAGER_BIND__HOST
+              value: 0.0.0.0
+            - name: FLINK_CFG_REST_ADDRESS
+              value: "release-name-flink-jobmanager"
+            - name: FLINK_CFG_REST_PORT
+              value: "8081"
+            - name: FLINK_CFG_REST_BIND__ADDRESS
+              value: 0.0.0.0
+            - name: FLINK_CFG_BLOB_SERVER_PORT
+              value: "6124"
+            - name: BITNAMI_DEBUG
+              value: "false"
+          envFrom:
+          startupProbe:
+            failureThreshold: 15
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: tcp-rpc
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: tcp-rpc
+          readinessProbe:
+            failureThreshold: 15
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: tcp-rpc
+          resources:
+            limits: {}
+            requests: {}
+      volumes:
+---
+# Source: flink/templates/taskmanager/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  release-name-flink-taskmanager
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flink
+    helm.sh/chart: flink-0.3.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flink
+    app.kubernetes.io/component: taskmanager
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flink
+      app.kubernetes.io/instance: release-name
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flink
+        helm.sh/chart: flink-0.3.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: flink
+        app.kubernetes.io/component: taskmanager
+    spec:
+      priorityClassName: ""
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flink
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: taskmanager
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      containers:
+        - name: flink-taskmanager
+          image: docker.io/bitnami/flink:1.17.1-debian-11-r16
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            runAsNonRoot: true
+            runAsUser: 1001
+          ports:
+            - name: data
+              containerPort: 6121
+            - name: tcp-rpc
+              containerPort: 6122
+          env:
+            - name: FLINK_MODE
+              value: taskmanager
+            # Hosts and addresses are determined by the service full name, which maps to flink.*§.fullname
+            - name: FLINK_CFG_JOBMANAGER_RPC_ADDRESS
+              value: "release-name-flink-jobmanager"
+            - name: FLINK_CFG_JOBMANAGER_RPC_PORT
+              value: "6123"
+            - name: FLINK_CFG_JOBMANAGER_BIND__HOST
+              value: 0.0.0.0
+            - name: FLINK_CFG_TASKMANAGER_RPC_PORT
+              value: "6122"
+            - name: FLINK_CFG_TASKMANAGER_HOST
+              value: "release-name-flink-taskmanager"
+            - name: FLINK_CFG_TASKMANAGER_BIND__HOST
+              value: 0.0.0.0
+            - name: BITNAMI_DEBUG
+              value: "false"
+          envFrom:
+          startupProbe:
+            failureThreshold: 15
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: tcp-rpc
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: tcp-rpc
+          readinessProbe:
+            failureThreshold: 15
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            tcpSocket:
+              port: tcp-rpc
+          resources:
+            limits: {}
+            requests: {}
+      volumes:

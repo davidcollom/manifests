@@ -1,0 +1,164 @@
+---
+# Source: wildfly/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-wildfly
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: wildfly
+    helm.sh/chart: wildfly-15.1.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  wildfly-password: "ZkhxZlRCUlVnOA=="
+---
+# Source: wildfly/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-wildfly
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: wildfly
+    helm.sh/chart: wildfly-15.1.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"
+---
+# Source: wildfly/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-wildfly
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: wildfly
+    helm.sh/chart: wildfly-15.1.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: "Cluster"
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: wildfly
+    app.kubernetes.io/instance: release-name
+---
+# Source: wildfly/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-wildfly
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: wildfly
+    helm.sh/chart: wildfly-15.1.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: wildfly
+      app.kubernetes.io/instance: release-name
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wildfly
+        helm.sh/chart: wildfly-15.1.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+      annotations:
+        checksum/secrets: b8ea0072739a3506ad2cc861f8a454e86757a9d8cb2dcbc73304f89b27f1263b
+    spec:
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: wildfly
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+      containers:
+        - name: wildfly
+          image: docker.io/bitnami/wildfly:28.0.1-debian-11-r16
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: WILDFLY_USERNAME
+              value: "user"
+            - name: WILDFLY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-wildfly
+                  key: wildfly-password
+            - name: WILDFLY_HTTP_PORT_NUMBER
+              value: "8080"
+            - name: WILDFLY_MANAGEMENT_PORT_NUMBER
+              value: "9990"
+            - name: WILDFLY_SERVER_LISTEN_ADDRESS
+              value: "0.0.0.0"
+            - name: WILDFLY_MANAGEMENT_LISTEN_ADDRESS
+              value: "127.0.0.1"
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: mgmt
+              containerPort: 9990
+          livenessProbe:
+            failureThreshold: 6
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 3
+          resources:
+            limits: {}
+            requests:
+              cpu: 300m
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/wildfly
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: release-name-wildfly

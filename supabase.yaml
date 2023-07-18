@@ -1,0 +1,2154 @@
+---
+# Source: supabase/templates/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-supabase
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+automountServiceAccountToken: true
+---
+# Source: supabase/charts/postgresql/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-postgresql
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  postgres-password: "V0FyT1oweWZkTQ=="
+  # We don't auto-generate LDAP password when it's not provided as we do for other passwords
+---
+# Source: supabase/templates/jwt-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-jwt
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+type: Opaque
+data:
+  secret: "RzdxQ1RuMjB5WEVEQktPZld4cjZyZDRUcHVXSlVsVHhNcVZLTHR2RXJV"
+---
+# Source: supabase/templates/realtime/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-supabase-realtime
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: realtime
+type: Opaque
+data:
+  key-base: "UjFOdFZPQnBocW15R0RHdzZ3S1JrbDJRODFCMFcyc0hLamRoT0l5NjhFbDZyN1JralQ1YTU2Zk5VQUYyd2ZhaQ=="
+---
+# Source: supabase/charts/kong/templates/kong-script-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-kong-scripts
+  namespace: harbor
+  labels:
+    app.kubernetes.io/name: kong
+    helm.sh/chart: kong-9.4.1
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+data:
+  kong-container-health.sh: |-
+    #!/bin/bash
+
+    set -o errexit
+    set -o nounset
+    set -o pipefail
+
+    # Load libraries
+    . /opt/bitnami/scripts/libos.sh
+    . /opt/bitnami/scripts/libkong.sh
+
+    # Load Kong environment variables
+    . /opt/bitnami/scripts/kong-env.sh
+
+    is_kong_running
+
+  ingress-container-wait-for-kong.sh: |-
+    #!/bin/bash
+
+    echo "Waiting for the Kong container to be ready"
+    if wait-for-port --timeout=300 --host=127.0.0.1 --state=inuse 8000; then
+      echo "Kong container ready"
+    else
+      echo "Kong not ready after 300 seconds"
+      exit 1
+    fi
+
+  ingress-container-start.sh: |-
+    #!/bin/bash
+
+    . /health/ingress-container-wait-for-kong.sh
+
+    kong-ingress-controller
+---
+# Source: supabase/templates/auth/default-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-supabase-auth-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: auth
+data:
+  GOTRUE_API_HOST: "0.0.0.0"
+  GOTRUE_API_PORT: "9999"
+  GOTRUE_SITE_URL: "http://localhost:80"
+  GOTRUE_URI_ALLOW_LIST: "*"
+  GOTRUE_DISABLE_SIGNUP: "false"
+  GOTRUE_DB_DRIVER: "postgres"
+  GOTRUE_JWT_DEFAULT_GROUP_NAME: "authenticated"
+  GOTRUE_JWT_ADMIN_ROLES: "service_role"
+  GOTRUE_JWT_AUD: "authenticated"
+  GOTRUE_JWT_EXP: "3600"
+  GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
+  GOTRUE_MAILER_AUTOCONFIRM: "true"
+  GOTRUE_SMTP_ADMIN_EMAIL: "your-mail@example.com"
+  GOTRUE_SMTP_HOST: "smtp.example.com"
+  GOTRUE_SMTP_PORT: "587"
+  GOTRUE_SMTP_SENDER_NAME: "your-mail@example.com"
+  GOTRUE_EXTERNAL_PHONE_ENABLED: "false"
+  GOTRUE_SMS_AUTOCONFIRM: "false"
+  GOTRUE_MAILER_URLPATHS_INVITE: "http://localhost:80/auth/v1/verify"
+  GOTRUE_MAILER_URLPATHS_CONFIRMATION: "http://localhost:80/auth/v1/verify"
+  GOTRUE_MAILER_URLPATHS_RECOVERY: "http://localhost:80/auth/v1/verify"
+  GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: "http://localhost:80/auth/v1/verify"
+---
+# Source: supabase/templates/kong/declarative-conf-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  
+  name: release-name-kong-declarative-config
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: kong
+data:
+  kong.yml.tpl: |
+    _format_version: "1.1"
+
+    consumers:
+      - username: anon
+        keyauth_credentials:
+            - key: {{SUPABASE_ANON_KEY}}
+      - username: service_role
+        keyauth_credentials:
+            - key: {{SUPABASE_SERVICE_KEY}}
+
+    acls:
+      - consumer: anon
+        group: anon
+      - consumer: service_role
+        group: admin
+
+    services:
+      - name: auth-v1-open
+        url: http://release-name-supabase-auth:80/verify
+        routes:
+          - name: auth-v1-open
+            strip_path: true
+            paths:
+              - /auth/v1/verify
+        plugins:
+          - name: cors
+      - name: auth-v1-open-callback
+        url: http://release-name-supabase-auth:80/callback
+        routes:
+          - name: auth-v1-open-callback
+            strip_path: true
+            paths:
+              - /auth/v1/callback
+        plugins:
+          - name: cors
+      - name: auth-v1-open-authorize
+        url: http://release-name-supabase-auth:80/authorize
+        routes:
+          - name: auth-v1-open-authorize
+            strip_path: true
+            paths:
+              - /auth/v1/authorize
+        plugins:
+          - name: cors
+
+      - name: auth-v1
+        _comment: "GoTrue: /auth/v1/* -> http://release-name-supabase-auth:80/*"
+        url: http://release-name-supabase-auth:80
+        routes:
+          - name: auth-v1-all
+            strip_path: true
+            paths:
+              - /auth/v1/
+        plugins:
+          - name: cors
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow:
+                - admin
+                - anon
+
+      - name: rest-v1
+        _comment: "PostgREST: /rest/v1/* -> http://release-name-supabase-rest:80/*"
+        url: http://release-name-supabase-rest:80/
+        routes:
+          - name: rest-v1-all
+            strip_path: true
+            paths:
+              - /rest/v1/
+        plugins:
+          - name: cors
+          - name: key-auth
+            config:
+              hide_credentials: true
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow:
+                - admin
+                - anon
+
+      - name: realtime-v1
+        _comment: "Realtime: /realtime/v1/* -> ws://release-name-supabase-realtime:80/socket/*"
+        url: http://release-name-supabase-realtime:80/socket
+        routes:
+          - name: realtime-v1-all
+            strip_path: true
+            paths:
+              - /realtime/v1/
+        plugins:
+          - name: cors
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow:
+                - admin
+                - anon
+
+      - name: storage-v1
+        _comment: "Storage: /storage/v1/* -> http://release-name-supabase-storage:80/*"
+        url: http://release-name-supabase-storage:80/
+        routes:
+          - name: storage-v1-all
+            strip_path: true
+            paths:
+              - /storage/v1/
+        plugins:
+          - name: cors
+
+      - name: meta
+        _comment: "pg-meta: /pg/* -> http://release-name-supabase-meta:80/*"
+        url: http://release-name-supabase-meta:80/
+        routes:
+          - name: meta-all
+            strip_path: true
+            paths:
+              - /pg/
+        plugins:
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow:
+                - admin
+---
+# Source: supabase/templates/meta/default-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-supabase-meta-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: meta
+data:
+  PG_META_DB_USER: "supabase_admin"
+  PG_META_DB_HOST: "release-name-postgresql"
+  PG_META_DB_PORT: "5432"
+  PG_META_DB_NAME: "postgres"
+  PG_META_DB_SSL_MODE: "disable"
+  PG_META_PORT: "8080"
+---
+# Source: supabase/templates/realtime/default-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-supabase-realtime-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: realtime
+data:
+  DB_HOST: "release-name-postgresql"
+  DB_PORT: "5432"
+  DB_NAME: "postgres"
+  DB_SSL: "disable"
+  PORT: "9999"
+  FLY_ALLOC_ID: "realtime"
+  FLY_APP_NAME: "realtime"
+  ERL_AFLAGS: "-proto_dist inet_tcp"
+  REPLICATION_MODE: "RLS"
+  REPLICATION_POLL_INTERVAL: "100"
+  SECURE_CHANNELS: "true"
+  SLOT_NAME: "supabase_realtime_rls"
+  TEMPORARY_SLOT: "true"
+---
+# Source: supabase/templates/rest/default-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-supabase-rest-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: rest
+data:
+  PGRST_DB_SCHEMA: "public,storage"
+  PGRST_DB_ANON_ROLE: "anon"
+  PGRST_DB_USE_LEGACY_GUCS: "false"
+  PGRST_SERVER_PORT: "3000"
+---
+# Source: supabase/templates/storage/default-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-supabase-storage-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: storage
+data:
+  POSTGREST_URL: "http://release-name-supabase-rest:80"
+  PGOPTIONS: "-c search_path=storage,public"
+  FILE_SIZE_LIMIT: "52428800"
+  STORAGE_BACKEND: "file"
+  FILE_STORAGE_BACKEND_PATH: "/bitnami/supabase-storage"
+  TENANT_ID: "stub"
+  REGION: "stub"
+  GLOBAL_S3_BUCKET: "stub"
+  PORT: "5000"
+---
+# Source: supabase/templates/studio/default-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-supabase-studio-default
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: studio
+data:
+  SUPABASE_URL: "http://release-name-kong.harbor.svc.cluster.local:80"
+  STUDIO_PG_META_URL: "http://release-name-kong.harbor.svc.cluster.local:80/pg"
+  SUPABASE_PUBLIC_URL: "http://localhost:80"
+  PORT: "3000"
+---
+# Source: supabase/templates/storage/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-supabase-storage
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"
+---
+# Source: supabase/templates/jwt-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: release-name-supabase-jwt-init
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - secrets
+    resourceNames:
+      - "release-name-jwt"
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+# Source: supabase/templates/jwt-rbac.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: release-name-supabase-jwt-init
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+subjects:
+  - kind: ServiceAccount
+    name: release-name-supabase
+    namespace: harbor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-supabase-jwt-init
+---
+# Source: supabase/charts/kong/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-kong
+  namespace: harbor
+  labels:
+    app.kubernetes.io/name: kong
+    helm.sh/chart: kong-9.4.1
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: ""
+  sessionAffinity: None
+  ports:
+    - port: 80
+      targetPort: http-proxy
+      protocol: TCP
+      name: http-proxy
+    - port: 443
+      targetPort: https-proxy
+      protocol: TCP
+      name: https-proxy
+  selector:
+    app.kubernetes.io/name: kong
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: server
+---
+# Source: supabase/charts/postgresql/templates/primary/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql-hl
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+    # Use this annotation in addition to the actual publishNotReadyAddresses
+    # field below because the annotation will stop being respected soon but the
+    # field is broken in some versions of Kubernetes:
+    # https://github.com/kubernetes/kubernetes/issues/58662
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  # We want all pods in the StatefulSet to have their addresses published for
+  # the sake of the other Postgresql pods even before they're ready, since they
+  # have to be able to talk to each other in order to become ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: primary
+---
+# Source: supabase/charts/postgresql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-postgresql
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: primary
+---
+# Source: supabase/templates/auth/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-supabase-auth
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: auth
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: 9999
+  selector:
+    app.kubernetes.io/name: supabase
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: auth
+---
+# Source: supabase/templates/meta/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-supabase-meta
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: meta
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: 8080
+  selector:
+    app.kubernetes.io/name: supabase
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: meta
+---
+# Source: supabase/templates/realtime/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-supabase-realtime
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: realtime
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: 9999
+  selector:
+    app.kubernetes.io/name: supabase
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: realtime
+---
+# Source: supabase/templates/rest/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-supabase-rest
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: rest
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: 3000
+  selector:
+    app.kubernetes.io/name: supabase
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: rest
+---
+# Source: supabase/templates/storage/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-supabase-storage
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: storage
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: 5000
+  selector:
+    app.kubernetes.io/name: supabase
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: storage
+---
+# Source: supabase/templates/studio/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-supabase-studio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: studio
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: 3000
+  selector:
+    app.kubernetes.io/name: supabase
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: studio
+---
+# Source: supabase/charts/kong/templates/dep-ds.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-kong
+  namespace: harbor
+  labels:
+    app.kubernetes.io/name: kong
+    helm.sh/chart: kong-9.4.1
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kong
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: server
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kong
+        helm.sh/chart: kong-9.4.1
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: server
+      annotations:
+        checksum/configmap-kong: 47f8e1d057fb752d685473594ddaf5e4fdf1ede86439595fabe7f66ec27e3fe0
+    spec:
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: kong
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: server
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      initContainers:
+        - name: render-kong-declarative-conf
+          image: 'docker.io/bitnami/kong:3.3.1-debian-11-r0'
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+        
+              . /opt/bitnami/scripts/liblog.sh
+        
+              # We need to generate it in the tmp folder to ensure that we have write permissions
+              info "Rendering Supabase declarative config template"
+              render-template /bitnami/kong/declarative-template/kong.yml.tpl > "/bitnami/kong/declarative-conf/kong.yml"
+          volumeMounts:
+            - name: declarative-conf-template
+              mountPath: /bitnami/kong/declarative-template/
+            - name: rendered-declarative-conf
+              mountPath: /bitnami/kong/declarative-conf/
+          env:
+            - name: SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: 'release-name-jwt'
+                  key: 'anon-key'
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: 'release-name-jwt'
+                  key: 'service-key'
+        
+      containers:
+        - name: kong
+          image: docker.io/bitnami/kong:3.3.1-debian-11-r0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: KONG_DATABASE
+              value: "off"
+            - name: KONG_DECLARATIVE_CONFIG
+              value: /bitnami/kong/declarative-conf/kong.yml
+            - name: KONG_DNS_ORDER
+              value: LAST,A,CNAME
+            - name: KONG_PLUGINS
+              value: request-transformer,cors,key-auth,acl
+          ports:
+            - name: http-proxy
+              containerPort: 8000
+              protocol: TCP
+            - name: https-proxy
+              containerPort: 8443
+              protocol: TCP
+            - name: http-admin
+              containerPort: 8001
+              protocol: TCP
+            - name: https-admin
+              containerPort: 8444
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - /health/kong-container-health.sh
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - /health/kong-container-health.sh
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - kong quit
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: health
+              mountPath: /health
+            - mountPath: /bitnami/kong/declarative-conf/
+              name: rendered-declarative-conf
+      volumes:
+        - name: health
+          configMap:
+            name: release-name-kong-scripts
+            defaultMode: 0755
+        - configMap:
+            name: 'release-name-kong-declarative-config'
+          name: declarative-conf-template
+        - emptyDir: {}
+          name: rendered-declarative-conf
+---
+# Source: supabase/templates/auth/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-supabase-auth
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: auth
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: supabase
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: auth
+  template:
+    metadata:
+      annotations:
+        checksum/default-configmap: d01ea5bc64e640ab3c853f35cd40ca13ef3fbea7a84f8510943cccf5d8b2526f
+        checksum/jwt-secret: 26488e232f8f5556510a9e893d6834bdca072a27f715130393e7aaf2bd3cee61
+      labels:
+        app.kubernetes.io/name: supabase
+        helm.sh/chart: supabase-0.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: auth
+    spec:
+      serviceAccountName: release-name-supabase
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: supabase
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: auth
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        # We need to wait for the postgresql database to be ready in order to start with Supabase.
+        # As it is a ReplicaSet, we need that all nodes are configured in order to start with
+        # the application or race conditions can occur
+        - name: wait-for-db
+          image: docker.io/bitnami/supabase-postgres:15.1.0-debian-11-r59
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/liblog.sh
+              . /opt/bitnami/scripts/libvalidations.sh
+              . /opt/bitnami/scripts/libpostgresql.sh
+              . /opt/bitnami/scripts/postgresql-env.sh
+        
+              info "Waiting for host $DATABASE_HOST"
+              psql_is_ready() {
+                  if ! PGCONNECT_TIMEOUT="5" PGPASSWORD="$DATABASE_PASSWORD" psql -U "$DATABASE_USER" -d "$DATABASE_NAME" -h "$DATABASE_HOST" -p "$DATABASE_PORT_NUMBER" -c "SELECT 1"; then
+                     return 1
+                  fi
+                  return 0
+              }
+              if ! retry_while "debug_execute psql_is_ready"; then
+                  error "Database not ready"
+                  exit 1
+              fi
+              info "Database is ready"
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: DATABASE_HOST
+              value: "release-name-postgresql"
+            - name: DATABASE_PORT_NUMBER
+              value: "5432"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            - name: DATABASE_USER
+              value: "supabase_admin"
+            - name: DATABASE_NAME
+              value: "postgres"
+      containers:
+        - name: gotrue
+          image: docker.io/bitnami/gotrue:1.0.1-debian-11-r51
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: DB_USER
+              value: "supabase_admin"
+            - name: DB_HOST
+              value: "release-name-postgresql"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "postgres"
+            - name: DB_SSL
+              value: "disable"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: "postgres-password"
+            - name: GOTRUE_DB_DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?search_path=auth&sslmode=$(DB_SSL)"
+            - name: GOTRUE_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: secret
+            - name: GOTRUE_OPERATOR_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: secret
+          envFrom:
+            - configMapRef:
+                name: release-name-supabase-auth-default
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 9999
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /health
+              port: http
+      volumes:
+---
+# Source: supabase/templates/meta/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-supabase-meta
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: meta
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: supabase
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: meta
+  template:
+    metadata:
+      annotations:
+        checksum/default-configmap: e1672a92d17f9c24975dade20fbf4452f554ebce3001a4101f20f3e1d1d8c2ba
+        checksum/jwt-secret: 953c79386c8e2364b884497d09bb4f43c7e8460a6d769ab06fb96307a86d60da
+      labels:
+        app.kubernetes.io/name: supabase
+        helm.sh/chart: supabase-0.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: meta
+    spec:
+      serviceAccountName: release-name-supabase
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: supabase
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: meta
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        # We need to wait for the postgresql database to be ready in order to start with Supabase.
+        # As it is a ReplicaSet, we need that all nodes are configured in order to start with
+        # the application or race conditions can occur
+        - name: wait-for-db
+          image: docker.io/bitnami/supabase-postgres:15.1.0-debian-11-r59
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/liblog.sh
+              . /opt/bitnami/scripts/libvalidations.sh
+              . /opt/bitnami/scripts/libpostgresql.sh
+              . /opt/bitnami/scripts/postgresql-env.sh
+        
+              info "Waiting for host $DATABASE_HOST"
+              psql_is_ready() {
+                  if ! PGCONNECT_TIMEOUT="5" PGPASSWORD="$DATABASE_PASSWORD" psql -U "$DATABASE_USER" -d "$DATABASE_NAME" -h "$DATABASE_HOST" -p "$DATABASE_PORT_NUMBER" -c "SELECT 1"; then
+                     return 1
+                  fi
+                  return 0
+              }
+              if ! retry_while "debug_execute psql_is_ready"; then
+                  error "Database not ready"
+                  exit 1
+              fi
+              info "Database is ready"
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: DATABASE_HOST
+              value: "release-name-postgresql"
+            - name: DATABASE_PORT_NUMBER
+              value: "5432"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            - name: DATABASE_USER
+              value: "supabase_admin"
+            - name: DATABASE_NAME
+              value: "postgres"
+      containers:
+        - name: supabase-postgres-meta
+          image: docker.io/bitnami/supabase-postgres-meta:0.67.0-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: PG_META_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: "postgres-password"
+          envFrom:
+            - configMapRef:
+                name: release-name-supabase-meta-default
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 8080
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /health
+              port: http
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /health
+              port: http
+          volumeMounts:
+      volumes:
+---
+# Source: supabase/templates/realtime/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-supabase-realtime
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: realtime
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: supabase
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: realtime
+  template:
+    metadata:
+      annotations:
+        checksum/default-configmap: 10527dccbde072166f1af841f31d951e69337405e2b4e9c2ab5b801ee398d107
+        checksum/jwt-secret: 7537cba8a427ab8813e9d30cac683944f77437c1ac7b182a42b74ef26d79d74b
+        checksum/secret: e35a6d417e874245f195b8c236084fb1ca34f5862ccd474b1f6a2676f3dd875f
+      labels:
+        app.kubernetes.io/name: supabase
+        helm.sh/chart: supabase-0.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: realtime
+    spec:
+      serviceAccountName: release-name-supabase
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: supabase
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: realtime
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        # We need to wait for the postgresql database to be ready in order to start with Supabase.
+        # As it is a ReplicaSet, we need that all nodes are configured in order to start with
+        # the application or race conditions can occur
+        - name: wait-for-db
+          image: docker.io/bitnami/supabase-postgres:15.1.0-debian-11-r59
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/liblog.sh
+              . /opt/bitnami/scripts/libvalidations.sh
+              . /opt/bitnami/scripts/libpostgresql.sh
+              . /opt/bitnami/scripts/postgresql-env.sh
+        
+              info "Waiting for host $DATABASE_HOST"
+              psql_is_ready() {
+                  if ! PGCONNECT_TIMEOUT="5" PGPASSWORD="$DATABASE_PASSWORD" psql -U "$DATABASE_USER" -d "$DATABASE_NAME" -h "$DATABASE_HOST" -p "$DATABASE_PORT_NUMBER" -c "SELECT 1"; then
+                     return 1
+                  fi
+                  return 0
+              }
+              if ! retry_while "debug_execute psql_is_ready"; then
+                  error "Database not ready"
+                  exit 1
+              fi
+              info "Database is ready"
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: DATABASE_HOST
+              value: "release-name-postgresql"
+            - name: DATABASE_PORT_NUMBER
+              value: "5432"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            - name: DATABASE_USER
+              value: "supabase_admin"
+            - name: DATABASE_NAME
+              value: "postgres"
+      containers:
+        - name: supabase-realtime
+          image: docker.io/bitnami/supabase-realtime:2.18.0-debian-11-r3
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              realtime eval Realtime.Release.migrate && realtime start
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "release-name-postgresql"
+                  key: "postgres-password"
+            - name: API_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "release-name-jwt"
+                  key: "secret"
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                secretKeyRef:
+                  name: "release-name-supabase-realtime"
+                  key: "key-base"
+          envFrom:
+            - configMapRef:
+                name: release-name-supabase-realtime-default
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 9999
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+      volumes:
+---
+# Source: supabase/templates/rest/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-supabase-rest
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: rest
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: supabase
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: rest
+  template:
+    metadata:
+      annotations:
+        checksum/default-configmap: 3d51e5d14f632cc4c1ca84f75e1f122378b798a7da991cbc249c1a3bd145d620
+        checksum/jwt-secret: ce72ea0ac391cfdd94f52a9189a3987ac404bae332c43225e6d48f2063a398f7
+      labels:
+        app.kubernetes.io/name: supabase
+        helm.sh/chart: supabase-0.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: rest
+    spec:
+      serviceAccountName: release-name-supabase
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: supabase
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: rest
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        # We need to wait for the postgresql database to be ready in order to start with Supabase.
+        # As it is a ReplicaSet, we need that all nodes are configured in order to start with
+        # the application or race conditions can occur
+        - name: wait-for-db
+          image: docker.io/bitnami/supabase-postgres:15.1.0-debian-11-r59
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/liblog.sh
+              . /opt/bitnami/scripts/libvalidations.sh
+              . /opt/bitnami/scripts/libpostgresql.sh
+              . /opt/bitnami/scripts/postgresql-env.sh
+        
+              info "Waiting for host $DATABASE_HOST"
+              psql_is_ready() {
+                  if ! PGCONNECT_TIMEOUT="5" PGPASSWORD="$DATABASE_PASSWORD" psql -U "$DATABASE_USER" -d "$DATABASE_NAME" -h "$DATABASE_HOST" -p "$DATABASE_PORT_NUMBER" -c "SELECT 1"; then
+                     return 1
+                  fi
+                  return 0
+              }
+              if ! retry_while "debug_execute psql_is_ready"; then
+                  error "Database not ready"
+                  exit 1
+              fi
+              info "Database is ready"
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: DATABASE_HOST
+              value: "release-name-postgresql"
+            - name: DATABASE_PORT_NUMBER
+              value: "5432"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            - name: DATABASE_USER
+              value: "supabase_admin"
+            - name: DATABASE_NAME
+              value: "postgres"
+      containers:
+        - name: postgrest
+          image: docker.io/bitnami/postgrest:11.1.0-debian-11-r11
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: DB_USER
+              value: "supabase_admin"
+            - name: DB_HOST
+              value: "release-name-postgresql"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "postgres"
+            - name: DB_SSL
+              value: "disable"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: "postgres-password"
+            - name: PGRST_DB_URI
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)?sslmode=$(DB_SSL)"
+            - name: PGRST_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: secret
+          envFrom:
+            - configMapRef:
+                name: release-name-supabase-rest-default
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 3000
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+      volumes:
+---
+# Source: supabase/templates/storage/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-supabase-storage
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: storage
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: supabase
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: storage
+  template:
+    metadata:
+      annotations:
+        checksum/default-configmap: 2e3b92fbd79e2bc3b9b758deeb26084c72cd1581d128e62f904ee30e2f915f16
+        checksum/jwt-secret: acda6449fc6009f3bf63c44a809558a18ee207c3e8cf6b1d3ab880ea0b1011b5
+      labels:
+        app.kubernetes.io/name: supabase
+        helm.sh/chart: supabase-0.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: storage
+    spec:
+      serviceAccountName: release-name-supabase
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: supabase
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: storage
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        # We need to wait for the postgresql database to be ready in order to start with Supabase.
+        # As it is a ReplicaSet, we need that all nodes are configured in order to start with
+        # the application or race conditions can occur
+        - name: wait-for-db
+          image: docker.io/bitnami/supabase-postgres:15.1.0-debian-11-r59
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/liblog.sh
+              . /opt/bitnami/scripts/libvalidations.sh
+              . /opt/bitnami/scripts/libpostgresql.sh
+              . /opt/bitnami/scripts/postgresql-env.sh
+        
+              info "Waiting for host $DATABASE_HOST"
+              psql_is_ready() {
+                  if ! PGCONNECT_TIMEOUT="5" PGPASSWORD="$DATABASE_PASSWORD" psql -U "$DATABASE_USER" -d "$DATABASE_NAME" -h "$DATABASE_HOST" -p "$DATABASE_PORT_NUMBER" -c "SELECT 1"; then
+                     return 1
+                  fi
+                  return 0
+              }
+              if ! retry_while "debug_execute psql_is_ready"; then
+                  error "Database not ready"
+                  exit 1
+              fi
+              info "Database is ready"
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: DATABASE_HOST
+              value: "release-name-postgresql"
+            - name: DATABASE_PORT_NUMBER
+              value: "5432"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            - name: DATABASE_USER
+              value: "supabase_admin"
+            - name: DATABASE_NAME
+              value: "postgres"
+      containers:
+        - name: supabase-storage
+          image: docker.io/bitnami/supabase-storage:0.41.2-debian-11-r0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+
+              cd /opt/bitnami/supabase-storage
+              pm2-runtime start ecosystem.config.js
+          env:
+            - name: DB_USER
+              value: "supabase_admin"
+            - name: DB_HOST
+              value: "release-name-postgresql"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "postgres"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: "postgres-password"
+            - name: DATABASE_URL
+              value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+            - name: PGRST_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: secret
+            - name: ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: anon-key
+            - name: SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: service-key
+          envFrom:
+            - configMapRef:
+                name: release-name-supabase-storage-default
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 5000
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /status
+              port: http
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /status
+              port: http
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/supabase-storage
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: release-name-supabase-storage
+---
+# Source: supabase/templates/studio/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-supabase-studio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+    app.kubernetes.io/component: studio
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: supabase
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: studio
+  template:
+    metadata:
+      annotations:
+        checksum/default-configmap: 386c523c687968c79fc4bd95f41d6b5ebf75776c384dfcf370228ab3ba284ead
+        checksum/jwt-secret: 8f7480cf1f3896d4dd3caabf940421219cbf6e22397cf7c03449bd583141fcd5
+      labels:
+        app.kubernetes.io/name: supabase
+        helm.sh/chart: supabase-0.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: studio
+    spec:
+      serviceAccountName: release-name-supabase
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: supabase
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: studio
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        # We need to wait for the postgresql database to be ready in order to start with Supabase.
+        # As it is a ReplicaSet, we need that all nodes are configured in order to start with
+        # the application or race conditions can occur
+        - name: wait-for-db
+          image: docker.io/bitnami/supabase-postgres:15.1.0-debian-11-r59
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/liblog.sh
+              . /opt/bitnami/scripts/libvalidations.sh
+              . /opt/bitnami/scripts/libpostgresql.sh
+              . /opt/bitnami/scripts/postgresql-env.sh
+        
+              info "Waiting for host $DATABASE_HOST"
+              psql_is_ready() {
+                  if ! PGCONNECT_TIMEOUT="5" PGPASSWORD="$DATABASE_PASSWORD" psql -U "$DATABASE_USER" -d "$DATABASE_NAME" -h "$DATABASE_HOST" -p "$DATABASE_PORT_NUMBER" -c "SELECT 1"; then
+                     return 1
+                  fi
+                  return 0
+              }
+              if ! retry_while "debug_execute psql_is_ready"; then
+                  error "Database not ready"
+                  exit 1
+              fi
+              info "Database is ready"
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: DATABASE_HOST
+              value: "release-name-postgresql"
+            - name: DATABASE_PORT_NUMBER
+              value: "5432"
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            - name: DATABASE_USER
+              value: "supabase_admin"
+            - name: DATABASE_NAME
+              value: "postgres"
+      containers:
+        - name: supabase-studio
+          image: docker.io/bitnami/supabase-studio:0.23.6-debian-11-r3
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: anon-key
+            - name: SUPABASE_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: service-key
+            - name: SUPABASE_KEY_ADMIN
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: service-key
+          envFrom:
+            - configMapRef:
+                name: release-name-supabase-studio-default
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 3000
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+      volumes:
+---
+# Source: supabase/charts/postgresql/templates/primary/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-postgresql
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: postgresql
+    helm.sh/chart: postgresql-12.6.5
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: primary
+spec:
+  replicas: 1
+  serviceName: release-name-postgresql-hl
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: primary
+  template:
+    metadata:
+      name: release-name-postgresql
+      labels:
+        app.kubernetes.io/name: postgresql
+        helm.sh/chart: postgresql-12.6.5
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: primary
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: primary
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      hostNetwork: false
+      hostIPC: false
+      containers:
+        - name: postgresql
+          image: docker.io/bitnami/supabase-postgres:15.1.0-debian-11-r59
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/bitnami/postgresql"
+            - name: PGDATA
+              value: "/bitnami/postgresql/data"
+            # Authentication
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-postgresql
+                  key: postgres-password
+            # Replication
+            # Initdb
+            # Standby
+            # LDAP
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+            # TLS
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            # Audit
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            # Others
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: "error"
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: "pg_stat_statements, pg_stat_monitor, pgaudit, plpgsql, plpgsql_check, pg_cron, pg_net, pgsodium, timescaledb, auto_explain"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - exec pg_isready -U "postgres" -h 127.0.0.1 -p 5432
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - -e
+                - |
+                  exec pg_isready -U "postgres" -h 127.0.0.1 -p 5432
+                  [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+          resources:
+            limits: {}
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /bitnami/postgresql
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: supabase/templates/jwt-init-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-name-supabase-jwt-init
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: supabase
+    helm.sh/chart: supabase-0.3.11
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: supabase
+  annotations:
+    helm.sh/hook: post-install
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "10"
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: supabase
+        helm.sh/chart: supabase-0.3.11
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: init
+    spec:
+      
+      serviceAccountName: release-name-supabase
+      restartPolicy: OnFailure
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: create-jwt-token
+          image: docker.io/bitnami/jwt-cli:5.0.3-debian-11-r49
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -ec
+          args:
+            - |
+              #!/bin/bash
+              echo "Generating JWT token"
+              # Taken from https://supabase.com/docs/guides/self-hosting#api-keys
+              ANON_KEY="$(jwt encode --secret=$SECRET '{"role":"anon","iss":"supabase","iat":1676934000,"exp":1834700400}')"
+              SERVICE_KEY="$(jwt encode --secret=$SECRET '{"role":"service_role","iss":"supabase","iat":1676934000,"exp":1834700400}')"
+              echo "Writing JWT token to file"
+              echo -n "$SECRET" > /bitnami/supabase/secrets/secret
+              echo -n "$ANON_KEY" > /bitnami/supabase/secrets/anon-key
+              echo -n "$SERVICE_KEY" > /bitnami/supabase/secrets/service-key
+          env:
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jwt
+                  key: secret
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          volumeMounts:
+            - name: secret-files
+              mountPath: /bitnami/supabase/secrets
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: create-update-secret
+          image: docker.io/bitnami/kubectl:1.26.6-debian-11-r9
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -ec
+          args:
+            - |
+              #!/bin/bash
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+              echo "Creating secret"
+              kubectl create secret --namespace=harbor generic release-name-jwt --from-file=/bitnami/supabase/secrets/secret --from-file=/bitnami/supabase/secrets/anon-key --from-file=/bitnami/supabase/secrets/service-key --dry-run -o yaml | kubectl apply -f -
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          volumeMounts:
+            - name: secret-files
+              mountPath: /bitnami/supabase/secrets
+          resources:
+            limits: {}
+            requests: {}
+      volumes:
+        - name: secret-files
+          emptyDir: {}

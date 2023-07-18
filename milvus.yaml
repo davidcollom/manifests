@@ -1,0 +1,4409 @@
+---
+# Source: milvus/charts/etcd/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: release-name-etcd
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  minAvailable: 51%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etcd
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: etcd
+---
+# Source: milvus/charts/kafka/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-kafka
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-23.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kafka
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: milvus/charts/minio/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.9
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+secrets:
+  - name: release-name-minio
+---
+# Source: milvus/charts/etcd/templates/token-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-etcd-jwt-token
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  jwt-token.pem: "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlKS2dJQkFBS0NBZ0VBdjZlUm5wTEpUZjZDWWtzYjAwNE5RRktZRDhoTVpQYXN6eXlJUXpJOUpOWnVXUm9ECkdoYk9jZ3hRRXBkM3pHSERUSjdlR29haXJJTmhzZk9ndUpWVDFpSjBtQ2x4b3Z0U3hLZjlYRFZhSWZSeWVWV2oKMm0zU3haQUhoYUdqTlhGNnJOTDN0cFhkOWpQUVFsK0ZKQUY0c0x4cFJ2eVY5L21qeWVqYzhXQndSMlNHd0pGUwpGUDBTZ2ZINEtoUmFYSHNYZGlLV0tPRFF4RWJ3QTc4c0VEcVBFZzlBRDFxMElUUTVTZVN2aW1HNmVLa3BPbWZxCktrMUxER1pqeVdkeXlwdkw1OFEvL2lxUTNhNGRzOUdoQ2UxSWhzQXdlYzRHQ3IweTFIWitEU20wSDlETk91VDEKSFdyWk5rOHkxUlhUdVpSbDNDR05WUFVxblJicTVFUmc4akhKcnVJcHcvbHdHaXlrOUx5WFk3YkoxaDI1b0p0cApOc1lLaHpFeno0dUxwZFN6OFlhOG80cEZKVDJqcXpkZzRodnowRG5KZWJGSzFoK2RlQWFLM2tSb2c4NmU2ckFwCnJSenFPbWJlK2xENXRVbjNZNldxQUpLeTZZVktFTXlORWMrbEdiL3IyTnE4alJ1V2FhSXpRRWdiemVTVW4wRHYKSGZwQXVYZW5WVkVTaHAzSDg5d0FYZlRBTllNUDE0cWxJb3FMMEM1bWJGaHlVYWlFMDIzaDR0blBaYkRtNjQzRwowd05jcUltOGwwNzBZUjcxWkpTUlFCTUY1cnlOZnA3VUUxRVVRNDQrdnR3RFBucWRuSytRM0p3bjdvaFVGaHdiCjR1eUNQVDE0SThWYzNtMVBpZjd0L1gyNFZMbjNEQm0vNjZtdTBCN0tQY091M2xOQy93SDdraWM4WVNjQ0F3RUEKQVFLQ0FnRUFqKzZHZS9KODMrZ2Rmemd0QTNvQWxhZnhyeGliMXM4eVpMeHE4UndQczFTZXRxZkVZSmwwSFU2Rgo3QkI0MWJNdCtxTHM1anJxZkdpR3ZCL2RPZ0piWGR1dWVIL1hhYkVaTGJ1RG1QWXdaSU95WE5FbUp1cUhlZnQ2CnlxN2paVVY5L2NES2JBTU5HTk04dWp3R1AwNGpsNGRJQVJtOGZ1aXFTdjVvdjVYUGZLNVFUTnBXTEpFS2p6QnIKVVI3TDVkeERlR0x0Sm5JQUZ3ZTNSUGtUWEhTOThiQW1TZUd5bWFVZ3lRL0hqVU5yeVNZeFlqMmNMSHl6dWZKRApTb1E0UDFUVnc0OHRCL0pyclRBUCtuV2FYVndvTlpxc1RTMmVkLzR5NkVDODFhSFdObmFYU24yY1g2Vll6MktYCktGUW1GNThOQ0U3aVYwVnY1VjNLdGZkc1h6ZG80SEVOQUJ2NnBEcGwzR0diUi8vdTNGaXpTNTNsOHNSbmtFOUgKdnZXbEpjenBkUmZodGJ3eDFvN1RILy90UGtIYXA3Y3NzQzdXVzNubnhzbnRwQ1hCanhWYURDSEMwZGdaOEFHRQpvcW01MWlrUkFoYXRhTElkMjlHeG1VT0s5cFl6ZTZmeXc3QTViYlVnakw4SG5OQTJrc2hFekFhRE9paTdVSUlJCk94Tk55NldiUHFBaUxpQlB4R1M2QzB0WER4V05xb09NazcrcE45cUtEemc3T0VrMjdnZHZ3OFQrSEl1enMxaEgKVHFWaFVSM3BQUXBaalpmQWVnY0ZsYUoxSzVoMUQ3eFZraUhsNWwrZ0VtQ2tLL3BuTWVkaFNZcGhZVW5uc0o2egpiUldpckNYbUxEMnFkWEtNOVZFdW9lUy91WCtXQ210THlwcS92WlRCbUdScXlkNXRiSkVDZ2dFQkFNWVN3WGV3ClY2cEpHMGtSY20wZDZ6V2ZYMEhJVzZGblpkNnU3UlQvcHIvOXFDd04vdVFCQXNoT292a0x6YjVRVU5QWVh4YjIKcGg3dmdINE56NU9uUnFPVTVOdHl0ZXUvY01GZEZKQWRYbjI0ZzVEM0trallDUTBJbE1jUnpERzBTVUdVVi90ZgpCVWpBUEVlaXVlZVNxTm1QdmJJc2VibndaejAxTDllTWhSajRMeHByTmtySW11a0VONVhJUzZBTmF3Y3NpMi9ECit1cWdQU0FLeU5FemtZQVZhZW9QS1FmRWtPbjg2V0RiSUp1aElYU1g0NW5kV0ozSGl2UDlINzlDVUlhR0wwUnEKcyt3dXY4MjJzWU9KcFFMYW5HNVAwZFNkOHcxMnJLeEI0aW10NkQzYnFLcGlpblJZc3pwekNQOVhZeTRmdkFaYgpCaFNTbFFWQkloTGwxbFVDZ2dFQkFQZTBRdWVqdTkzc1FYQjh4UGRKd1p3M2ZEWjRNRHcvNTgvVVpzOHl0b0xwClpSeXdOMGxSL0xGdUlTOEdCS0dWbDJzK3ZockIvSUlIMVF5OFczOG9BMk1GUlh4c0RDTm56ekdvM1hNN3NOYkIKdER3d21Ub2szeDZtWldPOVBCcFRUQ25yOWxNQm40SDBUZFZMTVJZV09JM2JJaTdNbit5RjA0UTFJNkxHcWdaYQpET21icDcveTIwc21LWGtVUUtLcmF1dWZsRGdQR011Q3NFY3d6UzBkcUpIOXRpdFJOZEViczZkNWZOTmxKY0xqClJnZUdUc1FoVzQ0b0xsdncvK0RBbTJhbUwvUFl5WEZ5NWloaE1UQnNpalo0WU5RZHF0RlY1OFA3M3FRWTNVZ3YKbzJ0aGhYUHd0VElDZlFPempHRHI4ZUV2akNPeTNIbm4wcjRKRktvai9Zc0NnZ0VCQUxUODltTlRjd2RhZmVBcQpYUkJ2d2pqaFE3MXNRcTRkT094ZGtxMFpYVmtaZ3MyZWpFWHkxb1FKdHNreWkvRldta1M0OVVxYVhmanVoODZtCitBSEhXN2lsbU9rY3pEWjZXNkdVVi9ISHBFdmtpZk93cGFhaUlNTVVFRDVHZVBzQjdkNUttb3BLclIxbzZxdmEKZVZ5c21qVVNMeGZibys3UFNNYVpEdm82b0hQTWM5NEVFVHdNU2VDWnhlRExnSzdqRStVZVF0c0JqUWxQR2d0cApUMDQ1Zkw0NDB1cllwM2s5bDl6M0NKbEVJV3VUdEdwQlQrdU1ZaWpwNklKQnpQeUtyK0g4UXJ5VmM0cGd2VXBQCm9heTczVmZhUWc1YVNUV3FqaWpEUTh5eTl1RjIwenVTdDIvWlV3STArckJ4NU1yTkl3ZEdZQnkrbDdPOHJRWjgKR1pLRENYRUNnZ0VCQU5wS2pxZUtnTFpMVFVRdmdIa1pFN2x5b0ZGMFM3WGM3NUlVOGVGcEpMUnJzTUsrZklwdAo2VTRINnRDQThqWGdHY2ZXVER4U2RnKzFqVWlpK2RNdVZRVy9rSVBjeURtdmMwV2xOanNtQUdyUjI5OHJTTzJYCnJ0VlkrSU1VTWxKVTFBc2h1anRlYzg1WG1QditQcXpqT2tXeE53ZWRKdGFPL1Y5R1lUaEM4WFdWaUVtYTloTlAKbDNnN2tsTDB5UjFTQ1hES2VobUpIR1hFcjBxZHRFTXRIdkJCY1hmdElvczhhVytPdmJXaUxzdjM5REFQYVh5bwpsUUhMWVVkL05GQkNEUEZDUllJVXF6b0NjdGhsQnE5UkIrQ0c1M1luQ3ZGZVRsaEZyK2hYVFRNZllGbnlZR1JUClhhdEx6QllsOWZFNEhUcEE1N1JTSE1DRnp3L1ArdGtSekk4Q2dnRUFQMTBBaXBnb2dFWlRybWdjQ25lOTFYcEMKVmlPL1ZVdi9qTmhsR1ZkWW9KL0dPOUtaU1lyRVU2RmlYR3BnQ0RDeDdORlNNaEwyN21qcjQ3cTJEeUpvSGhMUQpIUnR5a1FReU5RazhTdEhGbkZMSkt4THpBNGY3a0RVeTNFRUpiWk1iRVhEd05VeGNJT1kzR2owVlRydU8zR3g1CkxELzIrd1BoMEtaT2RxUkhFN3pIcGdrNll2Vm90RHVQcWtvWUlvK0xsWmdyRytqYndsNEk3VHJnRlhnWlVBOUUKcitYUjRrNG5TTWduMGRrckRzY2U0dWZOZm5RbnE2UlJjVFd5K0RFc2JsUTllU3NyUmJwNXJJSVpSQVFybi9Bcgo2WUw4UUZUbmJEYTdGbnhYNWRhanRob3pLMldWdHM4YlZPV2dBTVR4N0RvYTRJUjBhYVhMeW5tUW0zcldpQT09Ci0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg=="
+---
+# Source: milvus/charts/kafka/templates/jaas-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-kafka-jaas
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-23.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  client-passwords: "QU80WHY0a09WRw=="
+  system-user-password: "QU80WHY0a09WRw=="
+---
+# Source: milvus/charts/minio/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.9
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  root-user: "YWRtaW4="
+  root-password: "NmtXY0g0WFJGaw=="
+---
+# Source: milvus/charts/kafka/templates/scripts-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-kafka-scripts
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-23.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+data:
+  setup.sh: |-
+    #!/bin/bash
+
+    ID="${MY_POD_NAME#"release-name-kafka-"}"
+    # If process.roles is not set at all, it is assumed to be in ZooKeeper mode.
+    # https://kafka.apache.org/documentation/#kraft_role
+
+    if [[ -f "/bitnami/kafka/data/meta.properties" ]]; then
+        if [[ $KAFKA_CFG_PROCESS_ROLES == "" ]]; then
+            export KAFKA_CFG_BROKER_ID="$(grep "broker.id" "/bitnami/kafka/data/meta.properties" | awk -F '=' '{print $2}')"
+        else
+            export KAFKA_CFG_NODE_ID="$(grep "node.id" "/bitnami/kafka/data/meta.properties" | awk -F '=' '{print $2}')"
+        fi
+    else
+        if [[ $KAFKA_CFG_PROCESS_ROLES == "" ]]; then
+            export KAFKA_CFG_BROKER_ID="$((ID + 0))"
+        else
+            export KAFKA_CFG_NODE_ID="$((ID + 0))"
+        fi
+    fi
+
+    if [[ $KAFKA_CFG_PROCESS_ROLES == *"controller"* && -z $KAFKA_CFG_CONTROLLER_QUORUM_VOTERS ]]; then
+        node_id=0
+        pod_id=0
+        while :
+        do
+            VOTERS="${VOTERS}$node_id@release-name-kafka-$pod_id.release-name-kafka-headless.harbor.svc.cluster.local:9093"
+            node_id=$(( $node_id + 1 ))
+            pod_id=$(( $pod_id + 1 ))
+            if [[ $pod_id -ge 1 ]]; then
+                break
+            else
+                VOTERS="$VOTERS,"
+            fi
+        done
+        export KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=$VOTERS
+    fi
+
+    # Configure zookeeper client
+
+    exec /entrypoint.sh /run.sh
+---
+# Source: milvus/charts/minio/templates/provisioning-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-minio-provisioning
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.9
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: minio-provisioning
+data:
+---
+# Source: milvus/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  00_milvus_default.yaml: |
+    # etcd configuration
+    etcd:
+      endpoints:
+        - http://release-name-etcd-0.release-name-etcd-headless:2379
+        - http://release-name-etcd-1.release-name-etcd-headless:2379
+        - http://release-name-etcd-2.release-name-etcd-headless:2379
+    metastore:
+      type: etcd
+    
+    # S3 configuration
+    minio:
+      address: release-name-minio
+      port: 80
+      accessKeyID: "{{ MILVUS_S3_ACCESS_ID }}"
+      secretAccessKey: "{{ MILVUS_S3_SECRET_ACCESS_KEY }}"
+      useSSL: false
+      bucketName: milvus
+      rootPath: file
+      useIAM: false
+    
+    # Kafka configuration
+    kafka:
+      brokerList:
+        - release-name-kafka-0.release-name-kafka-headless:9092
+      securityProtocol: SASL_PLAINTEXT
+      saslMechanisms: PLAIN
+      saslUsername: user
+      saslPassword: "{{ MILVUS_KAFKA_PASSWORD }}"
+    
+    # Data coordinator
+    dataCoord:
+      address: release-name-milvus-data-coordinator
+      port: 19530
+    
+    # Root coordinator
+    rootCoord:
+      address: release-name-milvus-root-coordinator
+      port: 19530
+    
+    # Index coordinator
+    indexCoord:
+      address: release-name-milvus-index-coordinator
+      port: 19530
+    
+    # Query coordinator
+    queryCoord:
+      address: release-name-milvus-query-coordinator
+      port: 19530
+    
+    # Data node
+    dataNode:
+      port: 19530
+    
+    # Index node
+    indexNode:
+      port: 19530
+    
+    # Query node
+    queryNode:
+      port: 19530
+    
+    proxy:
+      port: 19530
+      accessLog:
+        localPath: /dev
+        filename: stdout
+      http:
+        enabled: true
+    
+    # Log configuration
+    log:
+      level: info
+      stdout: true
+    
+    # Common configuration
+    common:
+      storageType: minio
+      security:
+        authorizationEnabled: false
+---
+# Source: milvus/templates/data-coordinator/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-data-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_data_coordinator_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    dataCoord:
+      port: 19530
+      enableActiveStandby: true
+---
+# Source: milvus/templates/data-node/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-data-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_data_node_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    dataNode:
+      port: 19530
+      enableDisk: true
+---
+# Source: milvus/templates/index-coordinator/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-index-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_index_coordinator_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    indexCoord:
+      port: 19530
+      enableActiveStandby: true
+---
+# Source: milvus/templates/index-node/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-index-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_index_node_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    indexNode:
+      port: 19530
+      enableDisk: true
+---
+# Source: milvus/templates/proxy/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-proxy
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_index_node_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    proxy:
+      port: 19530
+      internalPort: 19529
+---
+# Source: milvus/templates/query-coordinator/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-query-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_query_coordinator_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    queryCoord:
+      port: 19530
+      enableActiveStandby: true
+---
+# Source: milvus/templates/query-node/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-query-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_query_node_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    queryNode:
+      port: 19530
+      enableDisk: true
+---
+# Source: milvus/templates/root-coordinator/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-milvus-root-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+data:
+  03_root_coordinator_default.yaml: |
+    # Override the port for internal binding (the external components will use the service port defined in milvus.defaultConfig)
+    rootCoord:
+      port: 19530
+      enableActiveStandby: true
+---
+# Source: milvus/charts/minio/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.9
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "8Gi"
+---
+# Source: milvus/charts/etcd/templates/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-etcd-headless
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: client
+      port: 2379
+      targetPort: client
+    - name: peer
+      port: 2380
+      targetPort: peer
+  selector:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/instance: release-name
+---
+# Source: milvus/charts/etcd/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-etcd
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: "client"
+      port: 2379
+      targetPort: client
+      nodePort: null
+    - name: "peer"
+      port: 2380
+      targetPort: peer
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/instance: release-name
+---
+# Source: milvus/charts/kafka/templates/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-kafka-headless
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-23.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kafka
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: false
+  ports:
+    - name: tcp-client
+      port: 9092
+      protocol: TCP
+      targetPort: kafka-client
+    - name: tcp-internal
+      port: 9094
+      protocol: TCP
+      targetPort: kafka-internal
+    - name: tcp-controller
+      protocol: TCP
+      port: 9093
+      targetPort: kafka-ctlr
+  selector:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: kafka
+---
+# Source: milvus/charts/kafka/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-kafka
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-23.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kafka
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: tcp-client
+      port: 9092
+      protocol: TCP
+      targetPort: kafka-client
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: kafka
+---
+# Source: milvus/charts/minio/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.9
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  ports:
+    - name: minio-api
+      port: 80
+      targetPort: minio-api
+      nodePort: null
+    - name: minio-console
+      port: 9001
+      targetPort: minio-console
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: minio
+    app.kubernetes.io/instance: release-name
+---
+# Source: milvus/templates/attu/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-attu
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: attu
+spec:
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: "Cluster"
+  
+  loadBalancerSourceRanges: []
+  
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: attu
+---
+# Source: milvus/templates/data-coordinator/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-data-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: data-coordinator
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: data-coordinator
+---
+# Source: milvus/templates/data-node/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-data-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: data-node
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: data-node
+---
+# Source: milvus/templates/index-coordinator/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-index-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: index-coordinator
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: index-coordinator
+---
+# Source: milvus/templates/index-node/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-index-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: index-node
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: index-node
+---
+# Source: milvus/templates/proxy/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-proxy
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: proxy
+spec:
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: "Cluster"
+  
+  loadBalancerSourceRanges: []
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: proxy
+---
+# Source: milvus/templates/query-coordinator/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-query-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: query-coordinator
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: query-coordinator
+---
+# Source: milvus/templates/query-node/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-query-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: query-node
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: query-node
+---
+# Source: milvus/templates/root-coordinator/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-milvus-root-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: root-coordinator
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  
+  ports:
+    - name: grpc
+      port: 19530
+      targetPort: grpc
+      protocol: TCP
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: milvus
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: root-coordinator
+---
+# Source: milvus/charts/minio/templates/standalone/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-minio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.9
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minio
+      app.kubernetes.io/instance: release-name
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minio
+        helm.sh/chart: minio-12.6.9
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+      annotations:
+        checksum/credentials-secret: 5205fc0a6397a9a4432949cce5597ff28805793c057f1be23b1e47551ff1af4a
+    spec:
+      
+      serviceAccountName: release-name-minio
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: minio
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: minio
+          image: docker.io/bitnami/minio:2023.7.11-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MINIO_SCHEME
+              value: "http"
+            - name: MINIO_FORCE_NEW_KEYS
+              value: "no"
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+            - name: MINIO_DEFAULT_BUCKETS
+              value: milvus
+            - name: MINIO_BROWSER
+              value: "on"
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"
+            - name: MINIO_CONSOLE_PORT_NUMBER
+              value: "9001"
+          envFrom:
+          ports:
+            - name: minio-api
+              containerPort: 9000
+              protocol: TCP
+            - name: minio-console
+              containerPort: 9001
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: minio-api
+              scheme: "HTTP"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: minio-api
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 5
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: release-name-minio
+---
+# Source: milvus/templates/attu/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-attu
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: attu
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: attu
+  template:
+    metadata:
+      annotations:
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: attu
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: attu
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-proxy
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_proxy() {
+                  local -r proxy_host="${1:-?missing proxy}"
+                  if wait-for-port --timeout=5 --host=${proxy_host} --state=inuse 19530; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-milvus-proxy"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_proxy $host"; then
+                  echo "Connected to $host"
+              else
+                  echo "Error connecting to $host"
+                  exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+      containers:
+        - name: attu
+          image: docker.io/bitnami/attu:2.2.7-debian-11-r4
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: MILVUS_URL
+              value: http://release-name-milvus-proxy:19530
+          envFrom:
+          ports:
+            - containerPort: 3000
+              name: http
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-npm
+              mountPath: /.npm
+            - name: tmp-yarn
+              mountPath: /.yarn
+            - name: tmp-yarn-cache
+              mountPath: /.cache/yarn
+      volumes:
+        - name: tmp-yarn
+          emptyDir: {}
+        - name: tmp-yarn-cache
+          emptyDir: {}
+        - name: tmp-npm
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+# Source: milvus/templates/data-coordinator/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-data-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: data-coordinator
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: data-coordinator
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: data-coordinator
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: data-coordinator
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - datacoord
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-data-coordinator
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/templates/data-node/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-data-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: data-node
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: data-node
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: data-node
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: data-node
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - datanode
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-data-node
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/templates/index-coordinator/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-index-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: index-coordinator
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: index-coordinator
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: index-coordinator
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: index-coordinator
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - indexcoord
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-index-coordinator
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/templates/index-node/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-index-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: index-node
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: index-node
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: index-node
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: index-node
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - indexnode
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-index-node
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/templates/proxy/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-proxy
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: proxy
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: proxy
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: proxy
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: proxy
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - proxy
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 19529
+              name: grpc-internal
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-proxy
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/templates/query-coordinator/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-query-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: query-coordinator
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: query-coordinator
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: query-coordinator
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: query-coordinator
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - querycoord
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-query-coordinator
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/templates/query-node/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-query-node
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: query-node
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: query-node
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: query-node
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: query-node
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - querynode
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-query-node
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/templates/root-coordinator/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-milvus-root-coordinator
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: milvus
+    helm.sh/chart: milvus-1.0.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: milvus
+    app.kubernetes.io/component: root-coordinator
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: milvus
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/part-of: milvus
+      app.kubernetes.io/component: root-coordinator
+  template:
+    metadata:
+      annotations:
+        checksum/common-config: f5cad75d1e1e2aea8f43debc1a36f2b80089a85ba761625130e45849e56eb7e2
+        checksum/common-config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+        checksum/config-extra: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+      labels:
+        app.kubernetes.io/name: milvus
+        helm.sh/chart: milvus-1.0.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: milvus
+        app.kubernetes.io/component: root-coordinator
+    spec:
+      serviceAccountName: default
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: milvus
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: root-coordinator
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-etcd
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              etcd_hosts=(
+                "http://release-name-etcd:2379"
+              )
+        
+              check_etcd() {
+                  local -r etcd_host="${1:-?missing etcd}"
+                  if curl --max-time 5 "${etcd_host}/version" | grep etcdcluster; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${etcd_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_etcd $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-kafka
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1 
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              kafka_hosts=(
+                "release-name-kafka"
+              )
+        
+              check_kafka() {
+                  local -r kafka_host="${1:-?missing kafka}"
+                  if wait-for-port --timeout=5 --host=${kafka_host} --state=inuse 9092; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              for host in "${kafka_hosts[@]}"; do
+                  echo "Checking connection to $host"
+                  if retry_while "check_kafka $host"; then
+                      echo "Connected to $host"
+                  else
+                      echo "Error connecting to $host"
+                      exit 1
+                  fi
+              done
+        
+              echo "Connection success"
+              exit 0
+        - name: wait-for-s3
+          image: docker.io/bitnami/os-shell:11-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              retry_while() {
+                local -r cmd="${1:?cmd is missing}"
+                local -r retries="${2:-12}"
+                local -r sleep_time="${3:-5}"
+                local return_value=1
+        
+                read -r -a command <<< "$cmd"
+                for ((i = 1 ; i <= retries ; i+=1 )); do
+                    "${command[@]}" && return_value=0 && break
+                    sleep "$sleep_time"
+                done
+                return $return_value
+              }
+        
+              check_s3() {
+                  local -r s3_host="${1:-?missing s3}"
+                  if curl --max-time 5 "${s3_host}" | grep "RequestId"; then
+                     return 0
+                  else
+                     return 1
+                  fi
+              }
+        
+              host="release-name-minio"
+        
+              echo "Checking connection to $host"
+              if retry_while "check_s3 $host"; then
+                echo "Connected to $host"
+              else
+                echo "Error connecting to $host"
+                exit 1
+              fi
+        
+              echo "Connection success"
+              exit 0
+        # This init container renders and merges the Milvus configuration files.
+        # We need to use a volume because we're working with ReadOnlyRootFilesystem
+        - name: prepare-milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - bash
+            - -ec
+            - |
+              #!/bin/bash
+              # Build final milvus.yaml with the sections of the different files
+              find /bitnami/milvus/conf -type f -name *.yaml -print0 | sort -z | xargs -0 yq eval-all '. as $item ireduce ({}; . * $item )' /opt/bitnami/milvus/configs/milvus.yaml > /bitnami/milvus/rendered-conf/pre-render-config_00.yaml
+              # HACK: In order to enable Kafka we need to remove all Pulsar settings from the configuration file
+              # https://github.com/milvus-io/milvus/blob/master/configs/milvus.yaml#L110
+              yq 'del(.pulsar)' /bitnami/milvus/rendered-conf/pre-render-config_00.yaml > /bitnami/milvus/rendered-conf/pre-render-config_01.yaml
+              render-template /bitnami/milvus/rendered-conf/pre-render-config_01.yaml > /bitnami/milvus/rendered-conf/milvus.yaml
+              rm /bitnami/milvus/rendered-conf/pre-render-config*
+              chmod 644 /bitnami/milvus/rendered-conf/milvus.yaml
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MILVUS_KAFKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: system-user-password
+            - name: MILVUS_S3_ACCESS_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MILVUS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          volumeMounts:
+            - name: config-common
+              mountPath: /bitnami/milvus/conf/00_default
+            - name: component-config-default
+              mountPath: /bitnami/milvus/conf/02_component_default
+            - name: tmp
+              mountPath: /tmp
+            - name: rendered-config
+              mountPath: /bitnami/milvus/rendered-conf/
+      containers:
+        - name: milvus
+          image: docker.io/bitnami/milvus:2.2.11-debian-11-r1
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - run
+            - rootcoord
+          env:
+            - name: METRICS_PORT
+              value: "9091"
+          envFrom:
+          ports:
+            - containerPort: 19530
+              name: grpc
+            - containerPort: 9091
+              name: http-metrics
+          resources:
+            limits: {}
+            requests: {}
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-metrics
+          volumeMounts:
+            - name: rendered-config
+              mountPath: /opt/bitnami/milvus/configs
+            - name: tmp
+              mountPath: /tmp
+            - name: tmp-milvus
+              mountPath: /opt/bitnami/milvus/tmp
+              # We are using a s3 backend, so this data dir is temporary
+            - name: tmp-data-milvus
+              mountPath: /bitnami/milvus/data
+      volumes:
+        - name: tmp-data-milvus
+          emptyDir: {}
+        - name: tmp-milvus
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: config-common
+          configMap:
+            name: release-name-milvus
+        - name: component-config-default
+          configMap:
+            name: release-name-milvus-root-coordinator
+        - name: rendered-config
+          emptyDir: {}
+---
+# Source: milvus/charts/etcd/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-etcd
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: etcd
+    helm.sh/chart: etcd-9.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: etcd
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etcd
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: etcd
+  serviceName: release-name-etcd-headless
+  podManagementPolicy: Parallel
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: etcd
+        helm.sh/chart: etcd-9.0.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: etcd
+      annotations:
+        checksum/token-secret: 4c44ffe17ebd12c8cca6471c7ab0d672a613ca08607ba1616ee38c615517b3a0
+    spec:
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: etcd
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: "default"
+      containers:
+        - name: etcd
+          image: docker.io/bitnami/etcd:3.5.9-debian-11-r20
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_STS_NAME
+              value: "release-name-etcd"
+            - name: ETCDCTL_API
+              value: "3"
+            - name: ETCD_ON_K8S
+              value: "yes"
+            - name: ETCD_START_FROM_SNAPSHOT
+              value: "no"
+            - name: ETCD_DISASTER_RECOVERY
+              value: "no"
+            - name: ETCD_NAME
+              value: "$(MY_POD_NAME)"
+            - name: ETCD_DATA_DIR
+              value: "/bitnami/etcd/data"
+            - name: ETCD_LOG_LEVEL
+              value: "info"
+            - name: ALLOW_NONE_AUTHENTICATION
+              value: "yes"
+            - name: ETCD_AUTH_TOKEN
+              value: "jwt,priv-key=/opt/bitnami/etcd/certs/token/jwt-token.pem,sign-method=RS256,ttl=10m"
+            - name: ETCD_ADVERTISE_CLIENT_URLS
+              value: "http://$(MY_POD_NAME).release-name-etcd-headless.harbor.svc.cluster.local:2379,http://release-name-etcd.harbor.svc.cluster.local:2379"
+            - name: ETCD_LISTEN_CLIENT_URLS
+              value: "http://0.0.0.0:2379"
+            - name: ETCD_INITIAL_ADVERTISE_PEER_URLS
+              value: "http://$(MY_POD_NAME).release-name-etcd-headless.harbor.svc.cluster.local:2380"
+            - name: ETCD_LISTEN_PEER_URLS
+              value: "http://0.0.0.0:2380"
+            - name: ETCD_INITIAL_CLUSTER_TOKEN
+              value: "etcd-cluster-k8s"
+            - name: ETCD_INITIAL_CLUSTER_STATE
+              value: "new"
+            - name: ETCD_INITIAL_CLUSTER
+              value: "release-name-etcd-0=http://release-name-etcd-0.release-name-etcd-headless.harbor.svc.cluster.local:2380,release-name-etcd-1=http://release-name-etcd-1.release-name-etcd-headless.harbor.svc.cluster.local:2380,release-name-etcd-2=http://release-name-etcd-2.release-name-etcd-headless.harbor.svc.cluster.local:2380"
+            - name: ETCD_CLUSTER_DOMAIN
+              value: "release-name-etcd-headless.harbor.svc.cluster.local"
+          envFrom:
+          ports:
+            - name: client
+              containerPort: 2379
+              protocol: TCP
+            - name: peer
+              containerPort: 2380
+              protocol: TCP
+          livenessProbe:
+            exec:
+              command:
+                - /opt/bitnami/scripts/etcd/healthcheck.sh
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - /opt/bitnami/scripts/etcd/healthcheck.sh
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 5
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /opt/bitnami/scripts/etcd/prestop.sh
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/etcd
+            - name: etcd-jwt-token
+              mountPath: /opt/bitnami/etcd/certs/token/
+              readOnly: true
+      volumes:
+        - name: etcd-jwt-token
+          secret:
+            secretName: release-name-etcd-jwt-token
+            defaultMode: 256
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: milvus/charts/kafka/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-kafka
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: kafka
+    helm.sh/chart: kafka-23.0.4
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kafka
+spec:
+  podManagementPolicy: Parallel
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kafka
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: kafka
+  serviceName: release-name-kafka-headless
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kafka
+        helm.sh/chart: kafka-23.0.4
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: kafka
+      annotations:
+        checksum/jaas-secret: 194e32bce199b8f45ddc20d805644c4666da5af0d12ec517174c8aa9e395c3ec
+    spec:
+      
+      hostNetwork: false
+      hostIPC: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: kafka
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: kafka
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: release-name-kafka
+      containers:
+        - name: kafka
+          image: docker.io/bitnami/kafka:3.5.0-debian-11-r7
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - /scripts/setup.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+              value: 
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "INTERNAL"
+            - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "INTERNAL:PLAINTEXT,CLIENT:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT"
+            - name: KAFKA_CFG_SASL_ENABLED_MECHANISMS
+              value: "PLAIN"
+            - name: KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL
+              value: "PLAIN"
+            - name: KAFKA_CFG_LISTENERS
+              value: "INTERNAL://:9094,CLIENT://:9092,CONTROLLER://:9093"
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: "INTERNAL://$(MY_POD_NAME).release-name-kafka-headless.harbor.svc.cluster.local:9094,CLIENT://$(MY_POD_NAME).release-name-kafka-headless.harbor.svc.cluster.local:9092"
+            - name: ALLOW_PLAINTEXT_LISTENER
+              value: "yes"
+            - name: KAFKA_OPTS
+              value: "-Djava.security.auth.login.config=/opt/bitnami/kafka/config/kafka_jaas.conf"
+            - name: KAFKA_CLIENT_USERS
+              value: "user"
+            - name: KAFKA_CLIENT_PASSWORDS
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-kafka-jaas
+                  key: client-passwords
+            - name: KAFKA_ZOOKEEPER_PROTOCOL
+              value: PLAINTEXT
+            - name: KAFKA_VOLUME_DIR
+              value: "/bitnami/kafka"
+            - name: KAFKA_LOG_DIR
+              value: "/opt/bitnami/kafka/logs"
+            - name: KAFKA_CFG_DELETE_TOPIC_ENABLE
+              value: "false"
+            - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+              value: "true"
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xmx1024m -Xms1024m"
+            - name: KAFKA_CFG_LOG_FLUSH_INTERVAL_MESSAGES
+              value: "10000"
+            - name: KAFKA_CFG_LOG_FLUSH_INTERVAL_MS
+              value: "1000"
+            - name: KAFKA_CFG_LOG_RETENTION_BYTES
+              value: "1073741824"
+            - name: KAFKA_CFG_LOG_RETENTION_CHECK_INTERVAL_MS
+              value: "300000"
+            - name: KAFKA_CFG_LOG_RETENTION_HOURS
+              value: "168"
+            - name: KAFKA_CFG_MESSAGE_MAX_BYTES
+              value: "1000012"
+            - name: KAFKA_CFG_LOG_SEGMENT_BYTES
+              value: "1073741824"
+            - name: KAFKA_CFG_LOG_DIRS
+              value: "/bitnami/kafka/data"
+            - name: KAFKA_CFG_DEFAULT_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_CFG_NUM_IO_THREADS
+              value: "8"
+            - name: KAFKA_CFG_NUM_NETWORK_THREADS
+              value: "3"
+            - name: KAFKA_CFG_NUM_PARTITIONS
+              value: "1"
+            - name: KAFKA_CFG_NUM_RECOVERY_THREADS_PER_DATA_DIR
+              value: "1"
+            - name: KAFKA_CFG_SOCKET_RECEIVE_BUFFER_BYTES
+              value: "102400"
+            - name: KAFKA_CFG_SOCKET_REQUEST_MAX_BYTES
+              value: "104857600"
+            - name: KAFKA_CFG_SOCKET_SEND_BUFFER_BYTES
+              value: "102400"
+            - name: KAFKA_CFG_ZOOKEEPER_CONNECTION_TIMEOUT_MS
+              value: "6000"
+            - name: KAFKA_CFG_AUTHORIZER_CLASS_NAME
+              value: ""
+            - name: KAFKA_CFG_ALLOW_EVERYONE_IF_NO_ACL_FOUND
+              value: "true"
+            - name: KAFKA_CFG_SUPER_USERS
+              value: "User:admin"
+            - name: KAFKA_ENABLE_KRAFT
+              value: "true"
+            - name: KAFKA_KRAFT_CLUSTER_ID
+              value: "kafka_cluster_id_test1"
+            - name: KAFKA_CFG_PROCESS_ROLES
+              value: "broker,controller"
+            - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+          ports:
+            - name: kafka-client
+              containerPort: 9092
+            - name: kafka-internal
+              containerPort: 9094
+            - name: kafka-ctlr
+              containerPort: 9093
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: kafka-client
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: kafka-client
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/kafka
+            - name: logs
+              mountPath: /opt/bitnami/kafka/logs
+            - name: scripts
+              mountPath: /scripts/setup.sh
+              subPath: setup.sh
+      volumes:
+        - name: scripts
+          configMap:
+            name: release-name-kafka-scripts
+            defaultMode: 0755
+        - name: logs
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: milvus/charts/minio/templates/provisioning-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-name-minio-provisioning
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: minio
+    helm.sh/chart: minio-12.6.9
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: minio-provisioning
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  parallelism: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: Helm
+        helm.sh/chart: minio-12.6.9
+        app.kubernetes.io/component: minio-provisioning
+    spec:
+      
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        fsGroup: 1001
+      serviceAccountName: release-name-minio
+      initContainers:
+        - name: wait-for-available-minio
+          image: docker.io/bitnami/minio:2023.7.11-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - /bin/bash
+            - -c
+            - |-
+              set -e;
+              echo "Waiting for Minio";
+              wait-for-port \
+                --host=release-name-minio \
+                --state=inuse \
+                --timeout=120 \
+                80;
+              echo "Minio is available";
+          resources:
+            limits: {}
+            requests: {}
+      containers:
+        - name: minio
+          image: docker.io/bitnami/minio:2023.7.11-debian-11-r0
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command:
+            - /bin/bash
+            - -c
+            - >-
+              set -e;
+              echo "Start Minio provisioning";
+
+              function attachPolicy() {
+                local tmp=$(mc admin $1 info provisioning $2 | sed -n -e 's/^Policy.*: \(.*\)$/\1/p');
+                IFS=',' read -r -a CURRENT_POLICIES <<< "$tmp";
+                if [[ ! "${CURRENT_POLICIES[*]}" =~ "$3" ]]; then
+                  mc admin policy attach provisioning $3 --$1=$2;
+                fi;
+              };
+
+              function detachDanglingPolicies() {
+                local tmp=$(mc admin $1 info provisioning $2 | sed -n -e 's/^Policy.*: \(.*\)$/\1/p');
+                IFS=',' read -r -a CURRENT_POLICIES <<< "$tmp";
+                IFS=',' read -r -a DESIRED_POLICIES <<< "$3";
+                for current in "${CURRENT_POLICIES[@]}"; do
+                  if [[ ! "${DESIRED_POLICIES[*]}" =~ "${current}" ]]; then
+                    mc admin policy detach provisioning $current --$1=$2;
+                  fi;
+                done;
+              }
+
+              function addUsersFromFile() {
+                local username=$(grep -oP '^username=\K.+' $1);
+                local password=$(grep -oP '^password=\K.+' $1);
+                local disabled=$(grep -oP '^disabled=\K.+' $1);
+                local policies_list=$(grep -oP '^policies=\K.+' $1);
+                local set_policies=$(grep -oP '^setPolicies=\K.+' $1);
+
+                mc admin user add provisioning "${username}" "${password}";
+
+                IFS=',' read -r -a POLICIES <<< "${policies_list}";
+                for policy in "${POLICIES[@]}"; do
+                  attachPolicy user "${username}" "${policy}";
+                done;
+                if [ "${set_policies}" == "true" ]; then
+                  detachDanglingPolicies user "${username}" "${policies_list}";
+                fi;
+
+                local user_status="enable";
+                if [[ "${disabled}" != "" && "${disabled,,}" == "true" ]]; then
+                  user_status="disable";
+                fi;
+
+                mc admin user "${user_status}" provisioning "${username}";
+              };
+              mc alias set provisioning $MINIO_SCHEME://release-name-minio:80 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD;
+
+              mc admin service restart provisioning;
+              
+              mc anonymous set download provisioning/milvus;
+
+              echo "End Minio provisioning";
+          env:
+            - name: MINIO_SCHEME
+              value: "http"
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-minio
+                  key: root-password
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: minio-provisioning
+              mountPath: /etc/ilm
+      volumes:
+        - name: minio-provisioning
+          configMap:
+            name: release-name-minio-provisioning

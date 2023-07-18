@@ -1,0 +1,1040 @@
+---
+# Source: jaeger/charts/cassandra/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-cassandra
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-10.4.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: jaeger/templates/agent/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  release-name-jaeger--agent
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: agent
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: jaeger/templates/collector/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  release-name-jaeger-collector
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: collector
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: jaeger/templates/query/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  release-name-jaeger-query
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: query
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: jaeger/charts/cassandra/templates/cassandra-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: release-name-cassandra
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-10.4.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+type: Opaque
+data:
+  cassandra-password: "UzE3ZWVRNzFVQg=="
+---
+# Source: jaeger/charts/cassandra/templates/metrics-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-cassandra-metrics-conf
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-10.4.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: cassandra
+    app.kubernetes.io/component: cassandra-exporter
+data:
+  config.yml: |-
+    host: localhost:7199
+    ssl: False
+    user:
+    password:
+    listenPort: 8080
+    blacklist:
+      # To profile the duration of jmx call you can start the program with the following options
+      # > java -Dorg.slf4j.simpleLogger.defaultLogLevel=trace -jar cassandra_exporter.jar config.yml --oneshot
+      #
+      # To get intuition of what is done by cassandra when something is called you can look in cassandra
+      # https://github.com/apache/cassandra/tree/trunk/src/java/org/apache/cassandra/metrics
+      # Please avoid to scrape frequently those calls that are iterating over all sstables
+    
+      # Unaccessible metrics (not enough privilege)
+      - java:lang:memorypool:.*usagethreshold.*
+    
+      # Leaf attributes not interesting for us but that are presents in many path
+      - .*:999thpercentile
+      - .*:95thpercentile
+      - .*:fifteenminuterate
+      - .*:fiveminuterate
+      - .*:durationunit
+      - .*:rateunit
+      - .*:stddev
+      - .*:meanrate
+      - .*:mean
+      - .*:min
+    
+      # Path present in many metrics but uninterresting
+      - .*:viewlockacquiretime:.*
+      - .*:viewreadtime:.*
+      - .*:cas[a-z]+latency:.*
+      - .*:colupdatetimedeltahistogram:.*
+    
+      # Mostly for RPC, do not scrap them
+      - org:apache:cassandra:db:.*
+    
+      # columnfamily is an alias for Table metrics
+      # https://github.com/apache/cassandra/blob/8b3a60b9a7dbefeecc06bace617279612ec7092d/src/java/org/apache/cassandra/metrics/TableMetrics.java#L162
+      - org:apache:cassandra:metrics:columnfamily:.*
+    
+      # Should we export metrics for system keyspaces/tables ?
+      - org:apache:cassandra:metrics:[^:]+:system[^:]*:.*
+    
+      # Don't scrap us
+      - com:criteo:nosql:cassandra:exporter:.*
+    
+    maxScrapFrequencyInSec:
+      50:
+        - .*
+    
+      # Refresh those metrics only every hour as it is costly for cassandra to retrieve them
+      3600:
+        - .*:snapshotssize:.*
+        - .*:estimated.*
+        - .*:totaldiskspaceused:.*
+---
+# Source: jaeger/charts/cassandra/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-cassandra-headless
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-10.4.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: intra
+      port: 7000
+      targetPort: intra
+    - name: tls
+      port: 7001
+      targetPort: tls
+    - name: jmx
+      port: 7199
+      targetPort: jmx
+    - name: cql
+      port: 9042
+      targetPort: cql
+  selector:
+    app.kubernetes.io/name: cassandra
+    app.kubernetes.io/instance: release-name
+---
+# Source: jaeger/charts/cassandra/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-cassandra
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-10.4.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: cql
+      port: 9042
+      targetPort: cql
+      nodePort: null
+    - name: metrics
+      port: 8080
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: cassandra
+    app.kubernetes.io/instance: release-name
+---
+# Source: jaeger/templates/agent/service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name:  release-name-jaeger--agent
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: agent
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: compact
+      port: 6831
+      targetPort: 6831
+      nodePort: null
+    - name: binary
+      port: 6832
+      targetPort: 6832
+      nodePort: null
+    - name: config
+      port: 5778
+      targetPort: 5778
+      nodePort: null
+    - name: zipkin
+      port: 5775
+      targetPort: 5775
+      nodePort: null
+    - name: admin
+      port: 14271
+      targetPort: 14271
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: agent
+---
+# Source: jaeger/templates/collector/service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name:  release-name-jaeger-collector
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: collector
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: grpc
+      port: 14250
+      targetPort: 14250
+      nodePort: null
+    - name: binary
+      port: 14268
+      targetPort: 14268
+      nodePort: null
+    - name: zipkin
+      port: 9411
+      targetPort: 9411
+      nodePort: null
+    - name: admin
+      port: 14269
+      targetPort: 14269
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: collector
+---
+# Source: jaeger/templates/query/service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name:  release-name-jaeger-query
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: query
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: api
+      port: 16686
+      targetPort: 16686
+      nodePort: null
+    - name: admin
+      port: 16687
+      targetPort: 16687
+      nodePort: null
+  selector:
+    app.kubernetes.io/name: jaeger
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: query
+---
+# Source: jaeger/templates/agent/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  release-name-jaeger--agent
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: agent
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jaeger
+      app.kubernetes.io/instance: release-name
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jaeger
+        helm.sh/chart: jaeger-1.2.7
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: jaeger
+        app.kubernetes.io/component: agent
+    spec:
+      priorityClassName: ""
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: jaeger
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: agent
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: jaeger-cassandra-ready-check
+          image: docker.io/bitnami/cassandra:4.0.10-debian-11-r14
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/libos.sh
+        
+              check_cassandra_keyspace_schema() {
+                  echo "SELECT 1" | cqlsh -u $CASSANDRA_USERNAME -p $CASSANDRA_PASSWORD -e "SELECT COUNT(*) FROM ${CASSANDRA_KEYSPACE}.traces"
+              }
+        
+              info "Connecting to the Cassandra instance $CQLSH_HOST:$CQLSH_PORT"
+              if ! retry_while "check_cassandra_keyspace_schema" 12 30; then
+                error "Could not connect to the database server"
+                exit 1
+              else
+                info "Connection check success"
+              fi
+          env:
+            - name: CQLSH_HOST
+              value: release-name-cassandra
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: CQLSH_PORT
+              value: "9042"
+            - name: CASSANDRA_USERNAME
+              value: "bn_jaeger"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jaeger-cassandra
+                  key: cassandra-password
+            - name: CASSANDRA_KEYSPACE
+              value: bitnami_jaeger
+      containers:
+        - name: jaeger-agent
+          image: docker.io/bitnami/jaeger:1.47.0-debian-11-r2
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command: ["/opt/bitnami/jaeger/bin/jaeger-agent"]
+          ports:
+            - name: binary
+              containerPort: 6832
+            - name: zipkin
+              containerPort: 5775
+            - name: admin
+              containerPort: 14271
+            - name: compact
+              containerPort: 6831
+            - name: config
+              containerPort: 5778
+          env:
+            - name: CASSANDRA_SERVERS
+              value: release-name-cassandra
+            - name: CASSANDRA_PORT
+              value: "9042"
+            - name: CASSANDRA_USERNAME
+              value: "bn_jaeger"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jaeger-cassandra
+                  key: cassandra-password
+            - name: CASSANDRA_KEYSPACE
+              value: "bitnami_jaeger"
+            - name: CASSANDRA_DATACENTER
+              value: "dc1"
+            - name: HTTP_SERVER_HOST_PORT
+              value: ":5778"
+            - name: PROCESSOR_JAEGER_BINARY_SERVER_HOST_PORT
+              value: ":6832"
+            - name: PROCESSOR_JAEGER_COMPACT_SERVER_HOST_PORT
+              value: ":6831"
+            - name: PROCESSOR_ZIPKIN_COMPACT_SERVER_HOST_PORT
+              value: ":5775"
+            - name: ADMIN_HTTP_HOST_PORT
+              value: ":14271"
+            - name: REPORTER_GRPC_HOST_PORT
+              value: release-name-jaeger-collector:14250
+            - name: BITNAMI_DEBUG
+              value: "false"
+          envFrom:
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /
+              port: admin
+          resources:
+            limits: {}
+            requests: {}
+      volumes:
+---
+# Source: jaeger/templates/collector/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  release-name-jaeger-collector
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: collector
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jaeger
+      app.kubernetes.io/instance: release-name
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jaeger
+        helm.sh/chart: jaeger-1.2.7
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: jaeger
+        app.kubernetes.io/component: collector
+    spec:
+      priorityClassName: ""
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: jaeger
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: collector
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: jaeger-cassandra-ready-check
+          image: docker.io/bitnami/cassandra:4.0.10-debian-11-r14
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/libos.sh
+        
+              check_cassandra_keyspace_schema() {
+                  echo "SELECT 1" | cqlsh -u $CASSANDRA_USERNAME -p $CASSANDRA_PASSWORD -e "SELECT COUNT(*) FROM ${CASSANDRA_KEYSPACE}.traces"
+              }
+        
+              info "Connecting to the Cassandra instance $CQLSH_HOST:$CQLSH_PORT"
+              if ! retry_while "check_cassandra_keyspace_schema" 12 30; then
+                error "Could not connect to the database server"
+                exit 1
+              else
+                info "Connection check success"
+              fi
+          env:
+            - name: CQLSH_HOST
+              value: release-name-cassandra
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: CQLSH_PORT
+              value: "9042"
+            - name: CASSANDRA_USERNAME
+              value: "bn_jaeger"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jaeger-cassandra
+                  key: cassandra-password
+            - name: CASSANDRA_KEYSPACE
+              value: bitnami_jaeger
+      containers:
+        - name: jaeger-collector
+          image: docker.io/bitnami/jaeger:1.47.0-debian-11-r2
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command: ["/opt/bitnami/jaeger/bin/jaeger-collector"]
+          ports:
+            - name: zipkin
+              containerPort: 9411
+            - name: binary
+              containerPort: 14268
+            - name: grpc
+              containerPort: 14250
+            - name: admin
+              containerPort: 14269
+          env:
+            - name: CASSANDRA_SERVERS
+              value: release-name-cassandra
+            - name: CASSANDRA_PORT
+              value: "9042"
+            - name: CASSANDRA_USERNAME
+              value: "bn_jaeger"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jaeger-cassandra
+                  key: cassandra-password
+            - name: CASSANDRA_KEYSPACE
+              value: "bitnami_jaeger"
+            - name: CASSANDRA_DATACENTER
+              value: "dc1"
+            - name: ADMIN_HTTP_HOST_PORT
+              value: ":14269"
+            - name: COLLECTOR_ZIPKIN_HOST_PORT
+              value: ":9411"
+            - name: COLLECTOR_GRPC_SERVER_HOST_PORT
+              value: ":14250"
+            - name: COLLECTOR_HTTP_SERVER_HOST_PORT
+              value: ":14268"
+            - name: BITNAMI_DEBUG
+              value: "false"
+          envFrom:
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /
+              port: admin
+          resources:
+            limits: {}
+            requests: {}
+      volumes:
+---
+# Source: jaeger/templates/query/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  release-name-jaeger-query
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: jaeger
+    app.kubernetes.io/component: query
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jaeger
+      app.kubernetes.io/instance: release-name
+  replicas: 1
+  strategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jaeger
+        helm.sh/chart: jaeger-1.2.7
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/part-of: jaeger
+        app.kubernetes.io/component: query
+    spec:
+      priorityClassName: ""
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: jaeger
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: query
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: jaeger-cassandra-ready-check
+          image: docker.io/bitnami/cassandra:4.0.10-debian-11-r14
+          imagePullPolicy: "IfNotPresent"
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+        
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+        
+              . /opt/bitnami/scripts/libos.sh
+        
+              check_cassandra_keyspace_schema() {
+                  echo "SELECT 1" | cqlsh -u $CASSANDRA_USERNAME -p $CASSANDRA_PASSWORD -e "SELECT COUNT(*) FROM ${CASSANDRA_KEYSPACE}.traces"
+              }
+        
+              info "Connecting to the Cassandra instance $CQLSH_HOST:$CQLSH_PORT"
+              if ! retry_while "check_cassandra_keyspace_schema" 12 30; then
+                error "Could not connect to the database server"
+                exit 1
+              else
+                info "Connection check success"
+              fi
+          env:
+            - name: CQLSH_HOST
+              value: release-name-cassandra
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: CQLSH_PORT
+              value: "9042"
+            - name: CASSANDRA_USERNAME
+              value: "bn_jaeger"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jaeger-cassandra
+                  key: cassandra-password
+            - name: CASSANDRA_KEYSPACE
+              value: bitnami_jaeger
+      containers:
+        - name: jaeger-query
+          image: docker.io/bitnami/jaeger:1.47.0-debian-11-r2
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          command: ["/opt/bitnami/jaeger/bin/jaeger-query"]
+          ports:
+            - name: ui
+              containerPort: 16686
+            - name: admin
+              containerPort: 16687
+          env:
+            - name: CASSANDRA_SERVERS
+              value: release-name-cassandra
+            - name: CASSANDRA_PORT
+              value: "9042"
+            - name: CASSANDRA_USERNAME
+              value: "bn_jaeger"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jaeger-cassandra
+                  key: cassandra-password
+            - name: CASSANDRA_KEYSPACE
+              value: "bitnami_jaeger"
+            - name: CASSANDRA_DATACENTER
+              value: "dc1"
+            - name: QUERY_HTTP_SERVER_HOST_PORT
+              value: ":16686"
+            - name: ADMIN_HTTP_HOST_PORT
+              value: ":16687"
+            - name: BITNAMI_DEBUG
+              value: "false"
+          envFrom:
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /
+              port: admin
+          resources:
+            limits: {}
+            requests: {}
+      volumes:
+---
+# Source: jaeger/charts/cassandra/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: release-name-cassandra
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: cassandra
+    helm.sh/chart: cassandra-10.4.3
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cassandra
+      app.kubernetes.io/instance: release-name
+  serviceName: release-name-cassandra-headless
+  podManagementPolicy: OrderedReady
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cassandra
+        helm.sh/chart: cassandra-10.4.3
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+    spec:
+      
+      serviceAccountName: release-name-cassandra
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: cassandra
+                    app.kubernetes.io/instance: release-name
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: cassandra
+          command:
+            - bash
+            - -ec
+            - |
+              # Node 0 is the password seeder
+              if [[ $POD_NAME =~ (.*)-0$ ]]; then
+                  echo "Setting node as password seeder"
+                  export CASSANDRA_PASSWORD_SEEDER=yes
+              else
+                  # Only node 0 will execute the startup initdb scripts
+                  export CASSANDRA_IGNORE_INITDB_SCRIPTS=1
+              fi
+              /opt/bitnami/scripts/cassandra/entrypoint.sh /opt/bitnami/scripts/cassandra/run.sh
+          image: docker.io/bitnami/cassandra:4.1.2-debian-11-r10
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: CASSANDRA_CLUSTER_NAME
+              value: cassandra
+            - name: CASSANDRA_SEEDS
+              value: "release-name-cassandra-0.release-name-cassandra-headless.harbor.svc.cluster.local"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-cassandra
+                  key: cassandra-password
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: CASSANDRA_USER
+              value: "bn_jaeger"
+            - name: CASSANDRA_NUM_TOKENS
+              value: "256"
+            - name: CASSANDRA_DATACENTER
+              value: dc1
+            - name: CASSANDRA_ENDPOINT_SNITCH
+              value: SimpleSnitch
+            - name: CASSANDRA_KEYSTORE_LOCATION
+              value: "/opt/bitnami/cassandra/certs/keystore"
+            - name: CASSANDRA_TRUSTSTORE_LOCATION
+              value: "/opt/bitnami/cassandra/certs/truststore"
+            - name: CASSANDRA_RACK
+              value: rack1
+            - name: CASSANDRA_TRANSPORT_PORT_NUMBER
+              value: "7000"
+            - name: CASSANDRA_JMX_PORT_NUMBER
+              value: "7199"
+            - name: CASSANDRA_CQL_PORT_NUMBER
+              value: "9042"
+          envFrom:
+          livenessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  nodetool info | grep "Native Transport active: true"
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 30
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  nodetool status | grep -E "^UN\\s+${POD_IP}"
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 30
+            successThreshold: 1
+            failureThreshold: 5
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - bash
+                  - -ec
+                  - nodetool drain
+          ports:
+            - name: intra
+              containerPort: 7000
+            - name: tls
+              containerPort: 7001
+            - name: jmx
+              containerPort: 7199
+            - name: cql
+              containerPort: 9042
+          resources: 
+            limits: {}
+            requests: {}
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/cassandra
+            
+      volumes:
+        - name: metrics-conf
+          configMap:
+            name: release-name-cassandra-metrics-conf
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          app.kubernetes.io/name: cassandra
+          app.kubernetes.io/instance: release-name
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+---
+# Source: jaeger/templates/migrate-job.yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-name-jaeger-migrate
+  namespace: harbor
+  labels:
+    app.kubernetes.io/name: jaeger
+    helm.sh/chart: jaeger-1.2.7
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: migration
+  annotations:
+    {}
+spec:
+  ttlSecondsAfterFinished: 30
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: jaeger
+        helm.sh/chart: jaeger-1.2.7
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: OnFailure
+      securityContext:
+        fsGroup: 1001
+      initContainers:
+        - name: jaeger-cassandra-schema-grabber
+          image: docker.io/bitnami/jaeger:1.47.0-debian-11-r2
+          command: [ "cp", "-T", "-r", "/opt/bitnami/jaeger/cassandra-schema", "/cassandra-schema/" ]
+          volumeMounts:
+            - name: cassandra-schema
+              mountPath: "/cassandra-schema"
+      containers:
+        - name: jaeger-cassandra-migrator
+          image: docker.io/bitnami/cassandra:4.0.10-debian-11-r14
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+
+              set -o errexit
+              set -o nounset
+              set -o pipefail
+
+              . /opt/bitnami/scripts/libos.sh
+
+              check_cassandra_connection() {
+                  echo "SELECT 1" | cqlsh -u $CASSANDRA_USERNAME -p $CASSANDRA_PASSWORD -e "QUIT"
+              }
+
+
+              info "Connecting to the Cassandra instance $CQLSH_HOST:$CQLSH_PORT"
+              if ! retry_while "check_cassandra_connection" 12 30; then
+                error "Could not connect to the database server"
+                exit 1
+              else
+                info "Connection check success"
+                sed -i 's/cqlsh -e "show version"/cqlsh -e "show version" -u $CASSANDRA_USERNAME -p $CASSANDRA_PASSWORD /' /cassandra-schema/create.sh
+                /cassandra-schema/docker.sh
+              fi
+          env:
+            - name: CQLSH
+              value: /opt/bitnami/cassandra/bin/cqlsh
+            - name: CQLSH_HOST
+              value: release-name-cassandra
+            - name: CQLSH_PORT
+              value: "9042"
+            - name: CASSANDRA_USERNAME
+              value: "bn_jaeger"
+            - name: DATACENTER
+              value: "dc1"
+            - name: KEYSPACE
+              value: "bitnami_jaeger"
+            - name: CASSANDRA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-jaeger-cassandra
+                  key: cassandra-password
+          volumeMounts:
+            - name: cassandra-schema
+              mountPath: "/cassandra-schema"
+          resources:
+            limits: {}
+            requests: {}
+      volumes:
+        - name: cassandra-schema
+          emptyDir: {}

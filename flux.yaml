@@ -1,0 +1,3535 @@
+---
+# Source: flux/templates/helm-controller/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-flux-helm-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flux/templates/image-automation-controller/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-flux-automation-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flux/templates/image-reflector-controller/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-flux-reflector-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flux/templates/kustomize-controller/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-flux-kustomize-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flux/templates/notification-controller/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-flux-notification-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flux/templates/source-controller/service-account.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: release-name-flux-source-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+automountServiceAccountToken: true
+---
+# Source: flux/templates/helm-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts/status
+    verbs:
+      - get
+---
+# Source: flux/templates/helm-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-helmrelease-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+rules:
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases/status
+    verbs:
+      - get
+---
+# Source: flux/templates/helm-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-helmrelease-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+rules:
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - helm.toolkit.fluxcd.io
+    resources:
+      - helmreleases/status
+    verbs:
+      - get
+---
+# Source: flux/templates/image-automation-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+rules:
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imageupdateautomations
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imageupdateautomations/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+# Source: flux/templates/image-automation-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-imgupdaut-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+rules:
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imageupdateautomations
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imageupdateautomations/status
+    verbs:
+      - get
+---
+# Source: flux/templates/image-automation-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-imgupdaut-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+rules:
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imageupdateautomations
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imageupdateautomations/status
+    verbs:
+      - get
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+---
+# Source: flux/templates/image-reflector-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - namespaces
+      - secrets
+      - serviceaccounts
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagerepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagerepositories/status
+    verbs:
+      - get
+      - patch
+      - update
+---
+# Source: flux/templates/image-reflector-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagepolicy-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+rules:
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies/status
+    verbs:
+      - get
+---
+# Source: flux/templates/image-reflector-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagepolicy-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+rules:
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagepolicies/status
+    verbs:
+      - get
+---
+# Source: flux/templates/image-reflector-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagerepository-e
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+rules:
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagerepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagerepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/image-reflector-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagerepository-v
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+rules:
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagerepositories
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - image.toolkit.fluxcd.io
+    resources:
+      - imagerepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/kustomize-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - secrets
+      - serviceaccounts
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets
+      - gitrepositories
+      - ocirepositories
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets/status
+      - gitrepositories/status
+      - ocirepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/kustomize-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-kustomization-edi
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+rules:
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations/status
+    verbs:
+      - get
+---
+# Source: flux/templates/kustomize-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-kustomization-vie
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+rules:
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - kustomize.toolkit.fluxcd.io
+    resources:
+      - kustomizations/status
+    verbs:
+      - get
+---
+# Source: flux/templates/notification-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - image.fluxcd.io
+    resources:
+      - imagerepositories
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - image.fluxcd.io
+    resources:
+      - imagerepositories/status
+    verbs:
+      - get
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - alerts
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - alerts/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - providers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - providers/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - receivers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - receivers/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - buckets
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - buckets/status
+    verbs:
+      - get
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - gitrepositories
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - gitrepositories/status
+    verbs:
+      - get
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - helmrepositories
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - helmrepositories/status
+    verbs:
+      - get
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - ocirepositories
+    verbs:
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.fluxcd.io
+    resources:
+      - ocirepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/notification-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-alert-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - alerts
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - alerts/status
+    verbs:
+      - get
+---
+# Source: flux/templates/notification-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-alert-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - alerts
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - alerts/status
+    verbs:
+      - get
+---
+# Source: flux/templates/notification-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-provider-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - providers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - providers/status
+    verbs:
+      - get
+---
+# Source: flux/templates/notification-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-provider-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - providers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - providers/status
+    verbs:
+      - get
+---
+# Source: flux/templates/notification-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-receiver-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - receivers
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - receivers/status
+    verbs:
+      - get
+---
+# Source: flux/templates/notification-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-receiver-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - receivers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - notification.toolkit.fluxcd.io
+    resources:
+      - receivers/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories/status
+    verbs:
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories/finalizers
+    verbs:
+      - create
+      - delete
+      - get
+      - patch
+      - update
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories/status
+    verbs:
+      - get
+      - patch
+      - update
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-bucket-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-bucket-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - buckets/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-gitrepository-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-gitrepository-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - gitrepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmchart-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmchart-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmcharts/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmrepository-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmrepository-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - helmrepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-ocirepository-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/source-controller/clusterroles.yaml
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-ocirepository-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - source.toolkit.fluxcd.io
+    resources:
+      - ocirepositories/status
+    verbs:
+      - get
+---
+# Source: flux/templates/helm-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-helm-controller-manager
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-helm-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/helm-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-helmrelease-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-helm-controller-helmrelease-editor
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-helm-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/helm-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-helmrelease-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-helm-controller-helmrelease-viewer
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-helm-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/helm-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-cluster-reconciler
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-helm-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-automation-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-automation-controller-manager
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-automation-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-automation-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-imgupdaut-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-automation-controller-imgupdaut-editor
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-automation-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-automation-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-imgupdaut-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-automation-controller-imgupdaut-viewer
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-automation-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-reflector-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-reflector-controller-manager
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-reflector-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-reflector-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagepolicy-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-reflector-controller-imagepolicy-edito
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-reflector-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-reflector-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagepolicy-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-reflector-controller-imagepolicy-viewe
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-reflector-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-reflector-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagerepository-e
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-reflector-controller-imagerepository-e
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-reflector-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-reflector-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-imagerepository-v
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-reflector-controller-imagerepository-v
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-reflector-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/kustomize-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-kustomize-controller-manager
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-kustomize-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/kustomize-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-kustomization-edi
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-kustomize-controller-kustomization-edi
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-kustomize-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/kustomize-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-kustomization-vie
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-kustomize-controller-kustomization-vie
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-kustomize-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/kustomize-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-cluster-reconcile
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-kustomize-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-notification-controller-manager
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-alert-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-notification-controller-alert-editor
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-alert-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-notification-controller-alert-viewer
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-provider-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-notification-controller-provider-edito
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-provider-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-notification-controller-provider-viewe
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-receiver-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-notification-controller-receiver-edito
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-receiver-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-notification-controller-receiver-viewe
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-manager
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-manager
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-bucket-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-bucket-editor
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-bucket-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-bucket-viewer
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-gitrepository-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-gitrepository-editor
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-gitrepository-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-gitrepository-viewer
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmchart-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-helmchart-editor
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmchart-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-helmchart-viewer
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmrepository-edito
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-helmrepository-edito
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-helmrepository-viewe
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-helmrepository-viewe
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-ocirepository-editor
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-ocirepository-editor
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/clusterrolebinding.yaml
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-ocirepository-viewer
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: release-name-flux-harbor-source-controller-ocirepository-viewer
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/helm-controller/roles.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-leader-election
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+  - apiGroups:
+      - "coordination.k8s.io"
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+# Source: flux/templates/image-automation-controller/roles.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-leader-election
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+  - apiGroups:
+      - "coordination.k8s.io"
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+# Source: flux/templates/image-reflector-controller/roles.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-leader-election
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+  - apiGroups:
+      - "coordination.k8s.io"
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+# Source: flux/templates/kustomize-controller/roles.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-leader-election
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+  - apiGroups:
+      - "coordination.k8s.io"
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+# Source: flux/templates/notification-controller/roles.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-leader-electio
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+  - apiGroups:
+      - "coordination.k8s.io"
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+# Source: flux/templates/source-controller/roles.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-leader-election
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps/status
+    verbs:
+      - get
+      - update
+      - patch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+  - apiGroups:
+      - "coordination.k8s.io"
+    resources:
+      - leases
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+---
+# Source: flux/templates/helm-controller/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-helm-controller-leader-election
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: helm-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-flux-harbor-helm-controller-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-helm-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-automation-controller/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-automation-controller-leader-election
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: image-automation-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-flux-harbor-automation-controller-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-automation-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/image-reflector-controller/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-reflector-controller-leader-election
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: image-reflector-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-flux-harbor-reflector-controller-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-reflector-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/kustomize-controller/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-kustomize-controller-leader-election
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: kustomize-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-flux-harbor-kustomize-controller-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-kustomize-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/notification-controller/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-notification-controller-leader-electio
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: notification-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-flux-harbor-notification-controller-leader-electio
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-notification-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/source-controller/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: release-name-flux-harbor-source-controller-leader-election
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/component: source-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-name-flux-harbor-source-controller-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: release-name-flux-source-controller
+    namespace: "harbor"
+---
+# Source: flux/templates/helm-controller/service-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-flux-helm-controller-metrics
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+  annotations:
+    prometheus.io/port: '80'
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: helm-controller
+---
+# Source: flux/templates/image-automation-controller/service-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-flux-automation-controller-metrics
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+  annotations:
+    prometheus.io/port: '80'
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: image-automation-controller
+---
+# Source: flux/templates/image-reflector-controller/service-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-flux-reflector-controller-metrics
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+  annotations:
+    prometheus.io/port: '80'
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: image-reflector-controller
+---
+# Source: flux/templates/kustomize-controller/service-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-flux-kustomize-controller-metrics
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+  annotations:
+    prometheus.io/port: '80'
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: kustomize-controller
+---
+# Source: flux/templates/notification-controller/service-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-flux-notification-controller-metrics
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+  annotations:
+    prometheus.io/port: '80'
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: notification-controller
+---
+# Source: flux/templates/source-controller/service-metrics.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-flux-source-controller-metrics
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+  annotations:
+    prometheus.io/port: '80'
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: source-controller
+---
+# Source: flux/templates/source-controller/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-flux-source-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+  annotations:
+    prometheus.io/port: 'map[http:80]'
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      nodePort: null
+      targetPort: http
+  selector:
+    app.kubernetes.io/name: flux
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/component: source-controller
+---
+# Source: flux/templates/helm-controller/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-flux-helm-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: helm-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flux
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: helm-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flux
+        helm.sh/chart: flux-0.3.6
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: helm-controller
+    spec:
+      serviceAccountName: release-name-flux-helm-controller
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flux
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: helm-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      containers:
+        - name: helm-controller
+          image: docker.io/bitnami/fluxcd-helm-controller:0.35.0-debian-11-r2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - --watch-all-namespaces
+            - --log-level=info
+            - --metrics-addr=:8080
+            - --health-addr=:9440
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http-metrics
+              containerPort: 8080
+            - name: http-health
+              containerPort: 9440
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-health
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /readyz
+              port: http-health
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Source: flux/templates/image-automation-controller/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-flux-automation-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-automation-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flux
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: image-automation-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flux
+        helm.sh/chart: flux-0.3.6
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: image-automation-controller
+    spec:
+      serviceAccountName: release-name-flux-automation-controller
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flux
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: image-automation-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      containers:
+        - name: image-automation-controller
+          image: docker.io/bitnami/fluxcd-image-automation-controller:0.31.0-debian-11-r23
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - --watch-all-namespaces
+            - --log-level=info
+            - --metrics-addr=:8080
+            - --health-addr=:9440
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http-metrics
+              containerPort: 8080
+            - name: http-health
+              containerPort: 9440
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-health
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /readyz
+              port: http-health
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Source: flux/templates/image-reflector-controller/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-flux-reflector-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: image-reflector-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flux
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: image-reflector-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flux
+        helm.sh/chart: flux-0.3.6
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: image-reflector-controller
+    spec:
+      serviceAccountName: release-name-flux-reflector-controller
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flux
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: image-reflector-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: image-reflector-controller
+          image: docker.io/bitnami/fluxcd-image-reflector-controller:0.29.1-debian-11-r0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - --watch-all-namespaces
+            - --log-level=info
+            - --metrics-addr=:8080
+            - --health-addr=:9440
+            - --storage-path=/bitnami/fluxcd-image-reflector-controller/data
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http-metrics
+              containerPort: 8080
+            - name: http-health
+              containerPort: 9440
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-health
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /readyz
+              port: http-health
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/fluxcd-image-reflector-controller/data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+# Source: flux/templates/kustomize-controller/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-flux-kustomize-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: kustomize-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flux
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: kustomize-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flux
+        helm.sh/chart: flux-0.3.6
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: kustomize-controller
+    spec:
+      serviceAccountName: release-name-flux-kustomize-controller
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flux
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: kustomize-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      containers:
+        - name: kustomize-controller
+          image: docker.io/bitnami/fluxcd-kustomize-controller:0.35.1-debian-11-r37
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - --watch-all-namespaces
+            - --log-level=info
+            - --metrics-addr=:8080
+            - --health-addr=:9440
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http-metrics
+              containerPort: 8080
+            - name: http-health
+              containerPort: 9440
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-health
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /readyz
+              port: http-health
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Source: flux/templates/notification-controller/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-flux-notification-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: notification-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flux
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: notification-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flux
+        helm.sh/chart: flux-0.3.6
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: notification-controller
+    spec:
+      serviceAccountName: release-name-flux-notification-controller
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flux
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: notification-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      containers:
+        - name: notification-controller
+          image: docker.io/bitnami/fluxcd-notification-controller:0.33.0-debian-11-r38
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - --watch-all-namespaces
+            - --log-level=info
+            - --metrics-addr=:8080
+            - --health-addr=:9440
+            - --log-encoding=json
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http-metrics
+              containerPort: 8080
+            - name: http-health
+              containerPort: 9440
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-health
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /readyz
+              port: http-health
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+# Source: flux/templates/source-controller/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-flux-source-controller
+  namespace: "harbor"
+  labels:
+    app.kubernetes.io/name: flux
+    helm.sh/chart: flux-0.3.6
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/part-of: flux
+    app.kubernetes.io/component: source-controller
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: flux
+      app.kubernetes.io/instance: release-name
+      app.kubernetes.io/component: source-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: flux
+        helm.sh/chart: flux-0.3.6
+        app.kubernetes.io/instance: release-name
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/component: source-controller
+    spec:
+      serviceAccountName: release-name-flux-source-controller
+      
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: flux
+                    app.kubernetes.io/instance: release-name
+                    app.kubernetes.io/component: source-controller
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: source-controller
+          image: docker.io/bitnami/fluxcd-source-controller:0.36.1-debian-11-r31
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+          args:
+            - --watch-all-namespaces
+            - --log-level=info
+            - --storage-addr=:9090
+            - --metrics-addr=:8080
+            - --health-addr=:9440
+            - --storage-path=/bitnami/fluxcd-source-controller/data
+            - --log-encoding=json
+            - --storage-adv-addr=release-name-flux-source-controller.$(RUNTIME_NAMESPACE).svc.cluster.local
+            - --enable-leader-election
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: TUF_ROOT
+              value: "/tmp/.sigstore"
+          envFrom:
+          resources:
+            limits: {}
+            requests: {}
+          ports:
+            - name: http
+              containerPort: 9090
+            - name: http-metrics
+              containerPort: 8080
+            - name: http-health
+              containerPort: 9440
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /healthz
+              port: http-health
+          readinessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /readyz
+              port: http-health
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/fluxcd-source-controller/data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
