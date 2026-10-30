@@ -21,7 +21,8 @@ manifests/
 └── ...
 ```
 
-There are currently **103** charts rendered.
+There are currently **105** chart manifests checked in (two of them, `common.yaml` and
+`grafana-mimir.yaml`, are empty placeholders).
 
 ## Covered applications
 
@@ -29,15 +30,15 @@ The rendered charts include the usual suspects:
 
 | Category | Applications |
 | -------- | ------------ |
-| Databases | `mysql`, `mariadb`, `mariadb-galera`, `mongodb`, `mongodb-sharded`, `postgresql`, `postgresql-ha`, `redis`, `redis-cluster`, `cassandra`, `influxdb`, `clickhouse`, `solr`, `memcached`, `elasticsearch` |
+| Databases | `mysql`, `mariadb`, `mariadb-galera`, `mongodb`, `mongodb-sharded`, `postgresql`, `postgresql-ha`, `redis`, `redis-cluster`, `cassandra`, `influxdb`, `clickhouse`, `solr`, `memcached`, `elasticsearch`, `etcd` |
 | Messaging | `kafka`, `rabbitmq`, `rabbitmq-cluster-operator`, `nats`, `zookeeper`, `schema-registry` |
-| Observability | `prometheus`, `kube-prometheus`, `thanos`, `grafana`, `grafana-loki`, `grafana-tempo`, `grafana-operator`, `kibana`, `jaeger`, `opensearch`/`elasticsearch`, `sonarqube`, `metrics-server`, `kube-state-metrics`, `node-exporter`, `fluent-bit`, `fluentd`, `logstash`, `kubernetes-event-exporter` |
-| Networking | `nginx`, `nginx-ingress-controller`, `haproxy`, `traefik` (`ingress`), `metallb`, `contour`, `consul`, `kong`, `apisix`, `oauth2-proxy`, `external-dns` |
+| Observability | `prometheus`, `kube-prometheus`, `thanos`, `grafana`, `grafana-loki`, `grafana-tempo`, `grafana-operator`, `kibana`, `jaeger`, `elasticsearch`, `sonarqube`, `metrics-server`, `kube-state-metrics`, `node-exporter`, `fluent-bit`, `fluentd`, `logstash`, `kubernetes-event-exporter` |
+| Networking | `nginx`, `nginx-ingress-controller`, `haproxy`, `metallb`, `contour`, `consul`, `kong`, `apisix`, `oauth2-proxy`, `external-dns`, `multus-cni` |
 | GitOps / CI | `argo-cd`, `argo-workflows`, `flux`, `concourse`, `jenkins`, `kubeapps` |
-| App frameworks | `airflow`, `spark`, `flink`, `jupyterhub`, `mlflow`-adjacent workloads, `mxnet`, `pytorch`, `tensorflow-resnet` |
-| CMS / e-commerce | `wordpress`, `drupal`, `joomla`, `magento`, `prestashop`, `opencart`, `osclass`, `suitecrm`, `ghost`, `discourse`, `mediawiki`, `moodle`, `phpbb`, `jasperreports`, `tomcat`, `wildfly`, `spring-cloud-dataflow` |
-| Identity | `keycloak`, `pinniped`, `sealed-secrets`, `vault`, `kiam` |
-| Storage | `minio`, `mariadb-galera`, `nfs`-adjacent storage classes |
+| App frameworks | `airflow`, `spark`, `flink`, `jupyterhub`, `mxnet`, `pytorch`, `tensorflow-resnet` |
+| CMS / e-commerce | `wordpress`, `drupal`, `joomla`, `magento`, `prestashop`, `opencart`, `osclass`, `suitecrm`, `ghost`, `discourse`, `mediawiki`, `moodle`, `phpbb`, `jasperreports`, `tomcat`, `wildfly`, `spring-cloud-dataflow`, `supabase` |
+| Identity | `keycloak`, `pinniped`, `sealed-secrets`, `vault`, `kiam`, `oauth2-proxy` |
+| Storage | `minio`, `harbor` |
 
 See the `manifests/` directory for the authoritative list.
 
