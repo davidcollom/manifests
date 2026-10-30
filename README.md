@@ -11,7 +11,7 @@ pull requests and lets it be applied directly with `kubectl apply`.
 Each file is the fully rendered output of one Bitnami chart:
 
 ```text
-manifests/
+.
 ├── airflow.yaml
 ├── argo-cd.yaml
 ├── grafana.yaml
@@ -40,20 +40,20 @@ The rendered charts include the usual suspects:
 | Identity | `keycloak`, `pinniped`, `sealed-secrets`, `vault`, `kiam`, `oauth2-proxy` |
 | Storage | `minio`, `harbor` |
 
-See the `manifests/` directory for the authoritative list.
+See the repository root for the authoritative list.
 
 ## Usage
 
 Apply a single application:
 
 ```bash
-kubectl apply -f manifests/grafana.yaml
+kubectl apply -f grafana.yaml
 ```
 
 Apply several:
 
 ```bash
-kubectl apply -f manifests/
+kubectl apply -f mongodb.yaml -f postgresql.yaml
 ```
 
 ## Regenerating
@@ -67,7 +67,7 @@ helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
 helm template release-name bitnami/grafana \
   --namespace harbor \
-  > manifests/grafana.yaml
+  > grafana.yaml
 ```
 
 Because the output is checked in, review the diff carefully — pinned chart versions and image tags
@@ -84,4 +84,4 @@ kubectl create namespace harbor
 
 ## License
 
-See the repository for licensing details.
+No licence file is included in this repository.
